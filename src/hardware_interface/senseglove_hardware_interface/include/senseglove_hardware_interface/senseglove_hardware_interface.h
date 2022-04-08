@@ -1,101 +1,81 @@
 // Copyright 2020 senseglove
+// Copyright 2022 Florent AUDONNET
 #ifndef ROS_WORKSPACE_SENSEGLOVE_HARDWARE_INTERFACE_H
 #define ROS_WORKSPACE_SENSEGLOVE_HARDWARE_INTERFACE_H
 
 #include <memory>
 #include <vector>
 
-#include <hardware_interface/joint_command_interface.h>
-#include <hardware_interface/joint_state_interface.h>
-#include <hardware_interface/robot_hw.h>
-#include <realtime_tools/realtime_publisher.h>
-#include <ros/ros.h>
+#include "hardware_interface/types/hardware_interface_return_values.hpp"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include <hardware_interface/system_interface.hpp>
+#include <hardware_interface/visibility_control.h>
 
 #include <senseglove_hardware/senseglove_robot.h>
 #include <senseglove_hardware/senseglove_setup.h>
+// #include <senseglove_hardware_builder/include/senseglove_hardware_builder/hardware_builder.h>
 #include <senseglove_hardware_builder/hardware_builder.h>
-#include <senseglove_shared_resources/SenseGloveState.h>
+#include <senseglove_shared_resources/msg/sense_glove_state.hpp>
 
-template <typename T>
-using RtPublisherPtr = std::unique_ptr<realtime_tools::RealtimePublisher<T>>;
+#include <sensor_msgs/msg/joint_state.hpp>
 
 /**
- * @brief HardwareInterface to allow ros_control to actuate our hardware.
+ * @brief HardwareInterface to allow rclcpp_control to actuate our hardware.
  * @details Register an interface for each joint such that they can be actuated
- *     by a controller via ros_control.
+ *     by a controller via rclcpp_control.
  */
-class SenseGloveHardwareInterface : public hardware_interface::RobotHW
+class SenseGloveHardwareInterface : public hardware_interface::SystemInterface
 {
 public:
-  SenseGloveHardwareInterface(std::unique_ptr<senseglove::SenseGloveSetup> setup);
+    // RCLCPP_SHARED_PTR_DEFINITIONS(SenseGloveHardwareInterface);
+    /**
+     * @brief Initialize the HardwareInterface by registering position interfaces
+     * for each joint.
+     */
+    CallbackReturn on_init(const hardware_interface::HardwareInfo &hardware_info) final;
 
-  /**
-   * @brief Initialize the HardwareInterface by registering position interfaces
-   * for each joint.
-   */
-  bool init(ros::NodeHandle& nh, ros::NodeHandle& robot_hw_nh) override;
+    std::vector<hardware_interface::StateInterface> export_state_interfaces() final;
 
-  /**
-   * @brief Perform all safety checks that might crash the sensegloves.
-   */
-  void validate();
+    std::vector<hardware_interface::CommandInterface> export_command_interfaces() final;
 
-  /**
-   * Reads (in realtime) the state from the sensegloves.
-   *
-   * @param time Current time
-   * @param elapsed_time Duration since last write action
-   */
-  void read(const ros::Time& /*time*/, const ros::Duration& /*elapsed_time*/) override;
+    hardware_interface::return_type prepare_command_mode_switch(const std::vector<std::string> &start_interfaces,
+                                                                const std::vector<std::string> &stop_interfaces) final;
 
-  /**
-   * Writes (in realtime) the commands from the controllers to the sensegloves.
-   *
-   * @param time Current time
-   * @param elapsed_time Duration since last write action
-   */
-  void write(const ros::Time& /*time*/, const ros::Duration& /*elapsed_time*/) override;
+    hardware_interface::return_type perform_command_mode_switch(const std::vector<std::string> &start_interfaces,
+                                                                const std::vector<std::string> &stop_interfaces) final;
+    hardware_interface::return_type read() final;
+    hardware_interface::return_type write() final;
+    CallbackReturn on_activate(const rclcpp_lifecycle::State &previous_state);
+
+    CallbackReturn on_deactivate(const rclcpp_lifecycle::State &previous_state);
 
 private:
-  void uploadJointNames(ros::NodeHandle& nh) const;
-  /**
-   * Uses the num_joints_ member to resize all vectors
-   * in order to avoid allocation at runtime.
-   */
-  void reserveMemory();
+    void reserveMemory();
 
-  void updateSenseGloveState();
+    /* SenseGlove hardware */
+    std::unique_ptr<senseglove::SenseGloveSetup> senseglove_setup_;
+    /* Shared memory */
+    size_t num_gloves_ = 0;
+    size_t num_joints_ = 0;
 
-  /* SenseGlove hardware */
-  std::unique_ptr<senseglove::SenseGloveSetup> senseglove_setup_;
+    std::vector<double> joint_position_;
+    std::vector<double> joint_position_command_;
+    std::vector<double> joint_last_position_command_;
 
-  /* Interfaces */
-  hardware_interface::JointStateInterface joint_state_interface_;
-  hardware_interface::PositionJointInterface position_joint_interface_;
-  hardware_interface::VelocityJointInterface velocity_joint_interface_;
-  hardware_interface::EffortJointInterface effort_joint_interface_;
+    std::vector<double> joint_velocity_;
+    std::vector<double> joint_velocity_command_;
+    
+    std::vector<double> joint_effort_;
+    std::vector<double> joint_effort_command_;
+    std::vector<double> joint_last_effort_command_;
+    std::vector<double> joint_last_buzz_command_; // inherited from effort_command
 
-  /* Shared memory */
-  size_t num_gloves_ = 0;
-  size_t num_joints_ = 0;
-
-  std::vector<std::vector<double>> joint_position_;
-  std::vector<std::vector<double>> joint_position_command_;
-  std::vector<std::vector<double>> joint_last_position_command_;
-
-  std::vector<std::vector<double>> joint_velocity_;
-  std::vector<std::vector<double>> joint_velocity_command_;
-
-  std::vector<std::vector<double>> joint_effort_;
-  std::vector<std::vector<double>> joint_effort_command_;
-  std::vector<std::vector<double>> joint_last_effort_command_;
-  std::vector<std::vector<double>> joint_last_buzz_command_;  // inherited from effort_command
-
-  bool master_shutdown_allowed_command_ = false;
-
-  bool has_actuated_ = false;
-
-  RtPublisherPtr<senseglove_shared_resources::SenseGloveState> senseglove_state_pub_;
+    bool has_actuated_ = false;
+    bool controllers_initialized_;
+    bool position_controller_running_;
+    bool velocity_controller_running_;
+    std::vector<std::string> start_modes_;
 };
 
-#endif  // ROS_WORKSPACE_SG_HARDWARE_INTERFACE_H
+#endif // ROS_WORKSPACE_SG_HARDWARE_INTERFACE_H

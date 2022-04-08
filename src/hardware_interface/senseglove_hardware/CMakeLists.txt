@@ -1,15 +1,14 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.8)
 project(senseglove_hardware)
 
-add_compile_options(-std=c++14 -Wall -Wextra -Werror)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-        roscpp
-        urdf
-        )
 
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(urdf REQUIRED)
 
 find_library(SGCORE
         NAMES libSGCoreCpp.so
@@ -21,34 +20,15 @@ find_library(SGCONNECT
         PATHS ../../SenseGlove_API/Core/SGConnect/lib/linux
         REQUIRED)
 
-catkin_package(
-        INCLUDE_DIRS include
-        CATKIN_DEPENDS
-        roscpp
-        urdf
-        LIBRARIES ${PROJECT_NAME}
-        CFG_EXTRAS
-        ${PROJECT_NAME}-extras.cmake
-)
-
-include(cmake/${PROJECT_NAME}-extras.cmake)
-
 include_directories(
         include
         SYSTEM
-        ${catkin_INCLUDE_DIRS}
         ../../SenseGlove_API/Core/SGConnect/incl
         ../../SenseGlove_API/Core/SGCoreCpp/incl
 )
-
 set(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
 
-if(CATKIN_ENABLE_TESTING AND ENABLE_COVERAGE_TESTING)
-    find_package(code_coverage REQUIRED)
-    # Add compiler flags for coverage instrumentation before defining any targets
-    append_coverage_compiler_flags()
-endif()
 
 add_library(${PROJECT_NAME}
         include/${PROJECT_NAME}/actuation_mode.h
@@ -60,35 +40,37 @@ add_library(${PROJECT_NAME}
         src/senseglove_setup.cpp
         )
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${SGCONNECT} ${SGCORE} pthread)
+target_link_libraries(${PROJECT_NAME} ${SGCONNECT} ${SGCORE} pthread)
 
-install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-        )
+ament_target_dependencies(
+  senseglove_hardware
+  rclcpp
+  urdf
+)
 
 install(DIRECTORY SenseCom
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+        DESTINATION share/${PROJECT_NAME}
         )
 
 install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        DESTINATION lib/${PROJECT_NAME}
         )
 
-# install(PROGRAMS SenseCom/Linux/SenseCom.x86_64 DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY include/
+  DESTINATION include/)
 
-### Add gtest based cpp test target and link libraries
-#if(CATKIN_ENABLE_TESTING)
-#    catkin_add_gmock(${PROJECT_NAME}_test
-#            test/.cpp
-#            )
-#    target_link_libraries(${PROJECT_NAME}_test ${catkin_LIBRARIES} ${PROJECT_NAME})
-#
-#    if(ENABLE_COVERAGE_TESTING)
-#        set(COVERAGE_EXCLUDES "*/${PROJECT_NAME}/test/*" "*/${PROJECT_NAME}/check/*")
-#        add_code_coverage(
-#                NAME coverage_report
-#                DEPENDENCIES ${PROJECT_NAME}_test
-#        )
-#    endif()
-#endif()
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_export_include_directories(
+  include
+)
+ament_package()

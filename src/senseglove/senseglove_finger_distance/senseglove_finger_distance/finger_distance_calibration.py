@@ -1,10 +1,8 @@
 from __future__ import print_function
 from collections import deque
-import rospy
-import rosparam
+import rclpy
 import sys
 from os.path import isdir, exists
-import rospkg
 from senseglove_shared_resources.msg import FingerDistanceFloats
 
 

@@ -1,24 +1,28 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.8)
 project(senseglove_hardware_interface)
 
-add_compile_options(-std=c++14 -Wall -Wextra -Werror)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-        controller_manager
-        joint_state_controller
-        joint_trajectory_controller
-        realtime_tools
-        roscpp
-        senseglove_description
-        senseglove_hardware
-        senseglove_hardware_builder
-        senseglove_shared_resources
-        std_msgs
-        urdf
-        )
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(urdf REQUIRED)
+find_package(joint_state_broadcaster REQUIRED)
+find_package(joint_trajectory_controller REQUIRED)
+find_package(senseglove_hardware REQUIRED)
+find_package(senseglove_description REQUIRED)
+find_package(senseglove_hardware_builder REQUIRED)
+find_package(senseglove_shared_resources REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(realtime_tools REQUIRED)
+find_package(controller_manager REQUIRED)
+find_package(hardware_interface REQUIRED)
 
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
 find_library(SGCORE
     NAMES libSGCoreCpp.so
     PATHS ../../SenseGlove_API/Core/SGCoreCpp/lib/linux/Release
@@ -29,67 +33,91 @@ find_library(SGCONNECT
     PATHS ../../SenseGlove_API/Core/SGConnect/lib/linux
     REQUIRED)
 
-catkin_package(
-        INCLUDE_DIRS include
-        CATKIN_DEPENDS
+set(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
+
+include_directories(include
+        SYSTEM
+        ../../SenseGlove_API/Core/SGConnect/incl
+        ../../SenseGlove_API/Core/SGCoreCpp/incl)
+
+add_library(${PROJECT_NAME} SHARED
+        src/${PROJECT_NAME}.cpp
+        )
+target_include_directories(${PROJECT_NAME} 
+        PRIVATE
+        include
+      )
+
+ament_target_dependencies(
+        senseglove_hardware_interface
         controller_manager
+        joint_trajectory_controller
+        joint_state_broadcaster
         realtime_tools
-        roscpp
+        rclcpp
         senseglove_description
         senseglove_hardware
         senseglove_hardware_builder
         senseglove_shared_resources
         std_msgs
         urdf
-)
+        hardware_interface
+      )
+pluginlib_export_plugin_description_file(hardware_interface hardware_interface_plugin.xml)
 
-set(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
-
-include_directories(include
-        SYSTEM
-        ${catkin_INCLUDE_DIRS}
-        ../../SenseGlove_API/Core/SGConnect/incl
-        ../../SenseGlove_API/Core/SGCoreCpp/incl)
-
-add_executable(${PROJECT_NAME}_node
-        src/${PROJECT_NAME}.cpp
+add_executable(${PROJECT_NAME}_node 
         src/${PROJECT_NAME}_node.cpp
+        include/senseglove_hardware_interface/senseglove_hardware_interface.h
         )
-
-add_dependencies(${PROJECT_NAME}_node ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(${PROJECT_NAME}_node
-    ${catkin_LIBRARIES}
-    ${SGCONNECT}
-    ${SGCORE})
-# From senseglove_hardware/cmake
-ros_enable_rpath(${PROJECT_NAME}_node)
-
-install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-        )
-
-install(TARGETS ${PROJECT_NAME}_node
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+# target_include_directories(${PROJECT_NAME}_node PUBLIC ${controller_manager_INCLUDE_DIRS})
+# target_link_libraries(${PROJECT_NAME}_node ${controller_manager_LIBRARIES})
+ament_target_dependencies(
+        senseglove_hardware_interface_node
+        controller_manager
+        joint_trajectory_controller
+        joint_state_broadcaster
+        realtime_tools
+        rclcpp
+        senseglove_description
+        senseglove_hardware
+        senseglove_hardware_builder
+        senseglove_shared_resources
+        std_msgs
+        urdf
+        hardware_interface
+      )
+        
+target_link_libraries(${PROJECT_NAME} ${SGCONNECT} ${SGCORE} yaml-cpp)
 
 install(DIRECTORY config launch
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+        DESTINATION share/${PROJECT_NAME}
+        )
+ament_export_include_directories(
+  include
+)
+ament_export_libraries(
+  ${PROJECT_NAME}
+)  
+install(TARGETS ${PROJECT_NAME}
+      DESTINATION lib
+        )
+install(TARGETS ${PROJECT_NAME}_node
+        DESTINATION lib/${PROJECT_NAME}
         )
 
-## Add gtest based cpp test target and link libraries
-#if(CATKIN_ENABLE_TESTING)
-#    catkin_add_gtest(${PROJECT_NAME}_test
-#            test/test_runner.cpp
-#            )
-#    target_link_libraries(${PROJECT_NAME}_test ${catkin_LIBRARIES})
-#
-#    if(ENABLE_COVERAGE_TESTING)
-#        set(COVERAGE_EXCLUDES "*/${PROJECT_NAME}/test/*")
-#        add_code_coverage(
-#                NAME coverage_report
-#                DEPENDENCIES ${PROJECT_NAME}_test
-#        )
-#    endif()
-#endif()
+install(DIRECTORY include/
+  DESTINATION include/)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()

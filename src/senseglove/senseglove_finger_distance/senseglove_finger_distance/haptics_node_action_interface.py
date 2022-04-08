@@ -1,7 +1,6 @@
-import rospy
+import rclpy
 import sys
 from std_msgs.msg import Header
-import actionlib
 import numpy as np
 
 from copy import copy

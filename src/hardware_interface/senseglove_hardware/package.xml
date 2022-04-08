@@ -3,19 +3,20 @@
 <package format="3">
   <name>senseglove_hardware</name>
   <version>0.0.0</version>
-  <description>
-    Communicates with the senseglove hardware.
-  </description>
+  <description>TODO: Package description</description>
+  <maintainer email="2330834a@student.gla.ac.uk">ubb</maintainer>
+  <license>TODO: License declaration</license>
 
-  <maintainer email="rogierkrijnen@live.nl">SenseGlove</maintainer>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <license>TODO</license>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <build_depend>rosidl_default_generators</build_depend>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
 
-  <depend>roscpp</depend>
-  <depend>urdf</depend>
-
-  <test_depend>code_coverage</test_depend>
-  <test_depend>rosunit</test_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

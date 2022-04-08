@@ -1,5 +1,7 @@
 // Copyright 2020 SenseGlove
+// Copyright 2022 Florent AUDONNET
 #include "senseglove_hardware_interface/senseglove_hardware_interface.h"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -10,246 +12,289 @@
 
 #include <urdf/model.h>
 
-using hardware_interface::JointHandle;
-using hardware_interface::JointStateHandle;
-using hardware_interface::PositionJointInterface;
-
-SenseGloveHardwareInterface::SenseGloveHardwareInterface(std::unique_ptr<senseglove::SenseGloveSetup> setup)
-  : senseglove_setup_(std::move(setup)), num_gloves_(this->senseglove_setup_->size())
+CallbackReturn SenseGloveHardwareInterface::on_activate(const rclcpp_lifecycle::State &previous_state)
 {
-}
-
-bool SenseGloveHardwareInterface::init(ros::NodeHandle& nh, ros::NodeHandle& /* robot_hw_nh */)
-{
-  // Initialize realtime publisher for the SenseGlove states
-  std::string handedness[2] = { "/lh", "/rh" };
-  this->senseglove_state_pub_ =
-      std::make_unique<realtime_tools::RealtimePublisher<senseglove_shared_resources::SenseGloveState>>(
-          nh,
-          "/" + this->senseglove_setup_->getSenseGloveRobot(0).getName() +
-              handedness[this->senseglove_setup_->getSenseGloveRobot(0).getRight()] + "/senseglove_states/",
-          1);
-
-  this->uploadJointNames(nh);
-
-  num_joints_ = 20;  // make dependent on size of senseglove robot
-  this->reserveMemory();
-
-  // Start ethercat cycle in the hardware
-  this->senseglove_setup_->startCommunication(true);
-
-  for (size_t i = 0; i < num_gloves_; ++i)
-  {
-    // Initialize interfaces for each joint
-    for (size_t k = 0; k < num_joints_; ++k)
+    std::string robot_type = info_.hardware_parameters["robot_type"];
+    std::string hand_type = info_.hardware_parameters["hand_type"];
+    AllowedRobot robot = AllowedRobot(robot_type);
+    HardwareBuilder builder(robot, hand_type.find("right") != std::string::npos);
+    try
     {
-      senseglove::Joint& joint = this->senseglove_setup_->getSenseGloveRobot(i).getJoint(k);
-      ROS_DEBUG_STREAM("Obtained necessary joint");
-
-      // Create joint state interface
-      JointStateHandle joint_state_handle(joint.getName(), &joint_position_[i][k], &joint_velocity_[i][k],
-                                          &joint_effort_[i][k]);
-      ROS_DEBUG_STREAM("joint state interface handle created");
-      joint_state_interface_.registerHandle(joint_state_handle);
-      ROS_DEBUG_STREAM("joint state interface handle registered");
-
-      if (joint.getActuationMode() == senseglove::ActuationMode::position)
-      {
-        // Create position joint interface
-        JointHandle joint_position_handle(joint_state_handle, &joint_position_command_[i][k]);
-        position_joint_interface_.registerHandle(joint_position_handle);
-      }
-      else if (joint.getActuationMode() == senseglove::ActuationMode::torque)
-      {
-        // Create effort joint interface
-        JointHandle joint_effort_handle_(joint_state_handle, &joint_effort_command_[i][k]);
-        effort_joint_interface_.registerHandle(joint_effort_handle_);
-      }
-      ROS_DEBUG_STREAM("Handles registered");
-
-      // Create velocity joint interface
-      JointHandle joint_velocity_handle(joint_state_handle, &joint_velocity_command_[i][k]);
-      velocity_joint_interface_.registerHandle(joint_velocity_handle);
-
-      // Prepare joints for actuation
-      if (joint.canActuate())
-      {
-        // Set the first target as the current position
-        if (senseglove_setup_->getSenseGloveRobot(i).updateGloveData(ros::Duration(0.0)))
-        {
-          joint_position_[i][k] = joint.getPosition();
-          joint_velocity_[i][k] = joint.getVelocity();
-          joint_effort_[i][k] = 0.0;
-        }
-
-        if (joint.getActuationMode() == senseglove::ActuationMode::position)
-        {
-          joint_effort_command_[i][k] = 0.0;
-        }
-        else if (joint.getActuationMode() == senseglove::ActuationMode::torque)
-        {
-          joint_effort_command_[i][k] = 0.0;
-        }
-      }
+        senseglove_setup_ = builder.createSenseGloveSetup();
     }
-  }
-  ROS_INFO("Successfully actuated all joints");
-
-  this->registerInterface(&this->joint_state_interface_);
-  this->registerInterface(&this->position_joint_interface_);
-  this->registerInterface(&this->effort_joint_interface_);
-
-  return true;
-}
-
-void SenseGloveHardwareInterface::read(const ros::Time& /* time */, const ros::Duration& elapsed_time)
-{
-  // read senseglove robot data
-  for (size_t i = 0; i < num_gloves_; ++i)
-  {
-    if (senseglove_setup_->getSenseGloveRobot(i).updateGloveData(elapsed_time))
+    catch (const std::exception& e)
     {
-      for (size_t k = 0; k < num_joints_; ++k)
-      {
-        senseglove::Joint& joint = senseglove_setup_->getSenseGloveRobot(i).getJoint(k);
-
-        joint_position_[i][k] = joint.getPosition();
-        joint_velocity_[i][k] = joint.getVelocity();
-        joint_effort_[i][k] = joint.getTorque();
-      }
-      this->updateSenseGloveState();
+        RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"),"Hardware interface caught an exception during building hardware");
+        RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"),"%s", e.what());
+        return CallbackReturn::FAILURE;
     }
-  }
+    // Start ethercat cycle in the hardware
+    this->senseglove_setup_->startCommunication(true);
+    return CallbackReturn::SUCCESS;
+}
+CallbackReturn SenseGloveHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &previous_state)
+{
+    // Start ethercat cycle in the hardware
+    this->senseglove_setup_->stopCommunication();
+    return CallbackReturn::SUCCESS;
 }
 
-void SenseGloveHardwareInterface::write(const ros::Time& /* time */, const ros::Duration& /*&elapsed_time*/)
+CallbackReturn SenseGloveHardwareInterface::on_init(const hardware_interface::HardwareInfo &hardware_info)
 {
-  for (size_t i = 0; i < num_gloves_; ++i)
-  {
+    if (hardware_interface::SystemInterface::on_init(hardware_info) != CallbackReturn::SUCCESS)
+    {
+        return CallbackReturn::ERROR;
+    }
+    info_ = hardware_info;
+    num_joints_ = info_.joints.size();
+    // initialize
+    this->reserveMemory();
+
+    for (const hardware_interface::ComponentInfo &joint : info_.joints)
+    {
+        if (joint.command_interfaces.size() != 2)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"),
+                         "Joint '%s' has %zu command interfaces found. 2 expected.", joint.name.c_str(),
+                         joint.command_interfaces.size());
+            return CallbackReturn::ERROR;
+        }
+
+        if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"),
+                         "Joint '%s' have %s command interfaces found as first command interface. '%s' expected.",
+                         joint.name.c_str(), joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
+            return CallbackReturn::ERROR;
+        }
+
+        if (joint.command_interfaces[1].name != hardware_interface::HW_IF_VELOCITY)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"),
+                         "Joint '%s' have %s command interfaces found as second command interface. '%s' expected.",
+                         joint.name.c_str(), joint.command_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY);
+            return CallbackReturn::ERROR;
+        }
+
+        if (joint.state_interfaces.size() != 3)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"), "Joint '%s' has %zu state interface. 3 expected.",
+                         joint.name.c_str(), joint.state_interfaces.size());
+            return CallbackReturn::ERROR;
+        }
+
+        if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"),
+                         "Joint '%s' have %s state interface as first state interface. '%s' expected.", joint.name.c_str(),
+                         joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
+            return CallbackReturn::ERROR;
+        }
+
+        if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"),
+                         "Joint '%s' have %s state interface as second state interface. '%s' expected.", joint.name.c_str(),
+                         joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_POSITION);
+            return CallbackReturn::ERROR;
+        }
+
+        if (joint.state_interfaces[2].name != hardware_interface::HW_IF_EFFORT)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("SenseGloveHardwareInterface"),
+                         "Joint '%s' have %s state interface as third state interface. '%s' expected.", joint.name.c_str(),
+                         joint.state_interfaces[2].name.c_str(), hardware_interface::HW_IF_POSITION);
+            return CallbackReturn::ERROR;
+        }
+    }
+
+    return CallbackReturn::SUCCESS;
+    ;
+}
+
+std::vector<hardware_interface::StateInterface> SenseGloveHardwareInterface::export_state_interfaces()
+{
+
+    std::vector<hardware_interface::StateInterface> state_interfaces;
+        for (size_t i = 0; i < num_joints_; ++i)
+        {
+            state_interfaces.emplace_back(hardware_interface::StateInterface(
+                info_.joints[i].name, hardware_interface::HW_IF_POSITION, &joint_position_[i]));
+
+            state_interfaces.emplace_back(hardware_interface::StateInterface(
+                info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &joint_velocity_[i]));
+
+            state_interfaces.emplace_back(hardware_interface::StateInterface(
+                info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &joint_effort_[i]));
+        }
+    return state_interfaces;
+}
+
+// Documentation Inherited
+std::vector<hardware_interface::CommandInterface> SenseGloveHardwareInterface::export_command_interfaces()
+{
+    std::vector<hardware_interface::CommandInterface> command_interfaces;
+        for (size_t i = 0; i < num_joints_; ++i)
+        {
+            command_interfaces.emplace_back(hardware_interface::CommandInterface(
+                info_.joints[i].name, hardware_interface::HW_IF_POSITION, &joint_position_command_[i]));
+
+            command_interfaces.emplace_back(hardware_interface::CommandInterface(
+                info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &joint_velocity_command_[i]));
+        }
+    return command_interfaces;
+}
+
+hardware_interface::return_type SenseGloveHardwareInterface::read()
+{
+    if (senseglove_setup_->getSenseGloveRobot().updateGloveData())
+    {
+        for (size_t i = 0; i < num_joints_; ++i)
+        {
+            senseglove::Joint &joint = senseglove_setup_->getSenseGloveRobot().getJoint(i);
+
+            joint_position_[i] = joint.getPosition();
+            joint_velocity_[i] = joint.getVelocity();
+            joint_effort_[i] = joint.getTorque();
+        }
+    }
+    return hardware_interface::return_type::OK;
+}
+
+hardware_interface::return_type SenseGloveHardwareInterface::write()
+{
     // Splice joint_effort_command vector into vectors for ffb and buzz commands
     int j = 0;
     int h = 0;
-    senseglove::SenseGloveRobot& robot = senseglove_setup_->getSenseGloveRobot(i);
-    for (size_t k = 0; k < num_joints_; k++)
+    senseglove::SenseGloveRobot &robot = senseglove_setup_->getSenseGloveRobot();
+    for (size_t i = 0; i < num_joints_; i++)
     {
-      senseglove::Joint& joint = robot.getJoint(k);
-      if (joint.canActuate())
-      {
-        if (joint.getActuationMode() == senseglove::ActuationMode::position)
+        senseglove::Joint &joint = robot.getJoint(i);
+        if (joint.canActuate())
         {
-          if (j % 2 == 1)
-          {
-            joint_last_position_command_[i][h] = joint_position_command_[i][k];
-            h++;
-          }
-          else
-          {
-            joint_last_buzz_command_[i][h] = joint_position_command_[i][k];
-          }
+            if (joint.getActuationMode() == senseglove::ActuationMode::position)
+            {
+                if (j % 2 == 1)
+                {
+                    joint_last_position_command_[h] = joint_position_command_[i];
+                    h++;
+                }
+                else
+                {
+                    joint_last_buzz_command_[h] = joint_position_command_[i];
+                }
 
-          if (j == 9)  // actuators 0 - 9
-          {
-            robot.actuateEffort(joint_last_position_command_[i]);
-            robot.actuateBuzz(joint_last_buzz_command_[i]);
-          }
-        }
-        else if (joint.getActuationMode() == senseglove::ActuationMode::torque)
-        {
-          if (j % 2 == 1)
-          {
-            joint_last_effort_command_[i][j] = joint_effort_command_[i][k];
-            h++;
-          }
-          else
-          {
-            joint_last_buzz_command_[i][j] = joint_effort_command_[i][k];
-          }
+                if (j == 9) // actuators 0 - 9
+                {
+                    robot.actuateEffort(joint_last_position_command_);
+                    robot.actuateBuzz(joint_last_buzz_command_);
+                }
+            }
+            else if (joint.getActuationMode() == senseglove::ActuationMode::torque)
+            {
+                if (j % 2 == 1)
+                {
+                    joint_last_effort_command_[j] = joint_effort_command_[i];
+                    h++;
+                }
+                else
+                {
+                    joint_last_buzz_command_[j] = joint_effort_command_[i];
+                }
 
-          if (j == 9)  // actuators 0 - 9
-          {
-            robot.actuateEffort(joint_last_effort_command_[i]);
-            robot.actuateBuzz(joint_last_buzz_command_[i]);
-          }
+                if (j == 9) // actuators 0 - 9
+                {
+                    robot.actuateEffort(joint_last_effort_command_);
+                    robot.actuateBuzz(joint_last_buzz_command_);
+                }
+            }
+            j++;
         }
-        j++;
-      }
     }
     j = 0;
     h = 0;
-  }
-}
-
-void SenseGloveHardwareInterface::uploadJointNames(ros::NodeHandle& nh) const
-{
-  std::vector<std::string> joint_names;
-  for (const auto& joint : *this->senseglove_setup_)
-  {
-    joint_names.push_back(joint.getName());
-  }
-  std::sort(joint_names.begin(), joint_names.end());
-  nh.setParam("/senseglove/joint_names", joint_names);
+    return hardware_interface::return_type::OK;
 }
 
 void SenseGloveHardwareInterface::reserveMemory()
 {
-  joint_position_.resize(num_gloves_);
-  joint_position_command_.resize(num_gloves_);
-  joint_last_position_command_.resize(num_gloves_);
-  joint_velocity_.resize(num_gloves_);
-  joint_velocity_command_.resize(num_gloves_);
-  joint_effort_.resize(num_gloves_);
-  joint_effort_command_.resize(num_gloves_);
-  joint_last_effort_command_.resize(num_gloves_);
-  joint_last_buzz_command_.resize(num_gloves_);
-  for (unsigned int i = 0; i < num_gloves_; ++i)
-  {
-    joint_position_[i].resize(num_joints_, 0.0);
-    joint_position_command_[i].resize(num_joints_, 0.0);
-    joint_last_position_command_[i].resize(5, 0.0);
-    joint_velocity_[i].resize(num_joints_, 0.0);
-    joint_velocity_command_[i].resize(num_joints_, 0.0);
-    joint_effort_[i].resize(num_joints_, 0.0);
-    joint_effort_command_[i].resize(num_joints_, 0.0);
-    joint_last_effort_command_[i].resize(5, 0.0);
-    joint_last_buzz_command_[i].resize(5, 0.0);
-  }
+    joint_position_.resize(num_joints_);
+    joint_position_command_.resize(num_joints_);
+    joint_last_position_command_.resize(num_joints_);
+    joint_velocity_.resize(num_joints_);
+    joint_velocity_command_.resize(num_joints_);
+    joint_effort_.resize(num_joints_);
+    joint_effort_command_.resize(num_joints_);
+    joint_last_effort_command_.resize(5, 0.0);
+    joint_last_buzz_command_.resize(5, 0.0);
 
-  senseglove_state_pub_->msg_.joint_names.resize(num_gloves_ * num_joints_);
-  senseglove_state_pub_->msg_.position.resize(num_gloves_ * num_joints_);
-  senseglove_state_pub_->msg_.absolute_velocity.resize(num_gloves_ * num_joints_);
-  senseglove_state_pub_->msg_.hand_position.resize(num_gloves_ * num_joints_);
-  senseglove_state_pub_->msg_.finger_tip_positions.resize(5);
 }
 
-void SenseGloveHardwareInterface::updateSenseGloveState()
+hardware_interface::return_type SenseGloveHardwareInterface::prepare_command_mode_switch(
+    const std::vector<std::string> &start_interfaces, const std::vector<std::string> &stop_interfaces)
 {
-  if (!senseglove_state_pub_->trylock())
-  {
-    return;
-  }
+    hardware_interface::return_type ret_val = hardware_interface::return_type::OK;
 
-  senseglove_state_pub_->msg_.header.stamp = ros::Time::now();
-  for (size_t i = 0; i < num_gloves_; ++i)
-  {
-    senseglove::SenseGloveRobot& robot = senseglove_setup_->getSenseGloveRobot(i);
-    for (size_t k = 0; k < num_joints_; ++k)
-    {
-      senseglove::Joint& joint = robot.getJoint(k);
-      senseglove_state_pub_->msg_.header.stamp = ros::Time::now();
-      senseglove_state_pub_->msg_.joint_names[i] = joint.getName();
-      senseglove_state_pub_->msg_.position[i] = joint.getPosition();
-      senseglove_state_pub_->msg_.absolute_velocity[i] = joint.getVelocity();
-      senseglove_state_pub_->msg_.hand_position[k].x = robot.getHandPos(k).x;
-      senseglove_state_pub_->msg_.hand_position[k].y = robot.getHandPos(k).y;
-      senseglove_state_pub_->msg_.hand_position[k].z = robot.getHandPos(k).z;
-    }
-    for (int j = 0; j < 5; ++j)
-    {
-      senseglove_state_pub_->msg_.finger_tip_positions[j].x = robot.getFingerTip(j).x;
-      senseglove_state_pub_->msg_.finger_tip_positions[j].y = robot.getFingerTip(j).y;
-      senseglove_state_pub_->msg_.finger_tip_positions[j].z = robot.getFingerTip(j).z;
-    }
-  }
+    start_modes_.clear();
 
-  senseglove_state_pub_->unlockAndPublish();
+    // Starting interfaces
+    // add start interface per joint in tmp var for later check
+    for (const auto &key : start_interfaces)
+    {
+        for (auto i = 0u; i < info_.joints.size(); i++)
+        {
+            if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
+            {
+                start_modes_.push_back(hardware_interface::HW_IF_POSITION);
+            }
+            if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY)
+            {
+                start_modes_.push_back(hardware_interface::HW_IF_VELOCITY);
+            }
+        }
+    }
+    // set new mode to all interfaces at the same time
+    if (start_modes_.size() != 0 && start_modes_.size() != 6)
+    {
+        ret_val = hardware_interface::return_type::ERROR;
+    }
+
+    // all start interfaces must be the same - can't mix position and velocity control
+    if (start_modes_.size() != 0 && !std::equal(start_modes_.begin() + 1, start_modes_.end(), start_modes_.begin()))
+    {
+        ret_val = hardware_interface::return_type::ERROR;
+    }
+
+    controllers_initialized_ = true;
+    return ret_val;
 }
+
+hardware_interface::return_type SenseGloveHardwareInterface::perform_command_mode_switch(
+    const std::vector<std::string> &start_interfaces, const std::vector<std::string> &stop_interfaces)
+{
+    hardware_interface::return_type ret_val = hardware_interface::return_type::OK;
+
+    if (start_modes_.size() != 0 &&
+        std::find(start_modes_.begin(), start_modes_.end(), hardware_interface::HW_IF_POSITION) != start_modes_.end())
+    {
+        velocity_controller_running_ = false;
+        joint_position_command_ = joint_last_position_command_ = joint_position_;
+        position_controller_running_ = true;
+    }
+    else if (start_modes_.size() != 0 && std::find(start_modes_.begin(), start_modes_.end(),
+                                                   hardware_interface::HW_IF_VELOCITY) != start_modes_.end())
+    {
+        position_controller_running_ = false;
+        std::fill(joint_velocity_command_.begin(), joint_velocity_command_.end(), 0);
+
+        velocity_controller_running_ = true;
+    }
+
+    start_modes_.clear();
+
+    return ret_val;
+}
+
+#include "pluginlib/class_list_macros.hpp"
+
+PLUGINLIB_EXPORT_CLASS(SenseGloveHardwareInterface, hardware_interface::SystemInterface)

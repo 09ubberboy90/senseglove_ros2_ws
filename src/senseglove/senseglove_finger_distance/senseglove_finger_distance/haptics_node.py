@@ -1,10 +1,30 @@
-import rospy
+import rclpy
+from rclpy.node import Node
+
 from senseglove_shared_resources.msg import SenseGloveState, FingerDistanceFloats
 import time
 from std_msgs.msg import Time
 from std_msgs.msg import Header
 from trajectory_msgs.msg import JointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
+
+class SenseGloveHaptics(Node):
+
+    def __init__(self):
+        super().__init__('minimal_publisher')
+        self.publisher_ = self.create_publisher(JointTrajectory, '/senseglove/0/lh/controller/trajectory/command', 10)
+        self.get_logger().info('Initialize haptics node')
+        self.joint_list = ['empty']
+        timer_period = 0.5  # seconds
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.i = 0
+
+    def timer_callback(self):
+        msg = String()
+        msg.data = 'Hello World: %d' % self.i
+        self.publisher_.publish(msg)
+        self.get_logger().info('Publishing: "%s"' % msg.data)
+        self.i += 1
 
 
 def main():

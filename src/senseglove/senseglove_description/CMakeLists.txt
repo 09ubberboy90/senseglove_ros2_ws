@@ -1,18 +1,28 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.8)
 project(senseglove_description)
 
-find_package(catkin REQUIRED COMPONENTS xacro)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-catkin_package(CFG_EXTRAS ${PROJECT_NAME}-extras.cmake)
+# find dependencies
+find_package(ament_cmake REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
+install(
+  DIRECTORY urdf
+  DESTINATION share/${PROJECT_NAME}
+)
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
-include(cmake/${PROJECT_NAME}-extras.cmake)
-
-set(XACRO_FILES
-        urdf/dk1_left.xacro
-        urdf/dk1_right.xacro
-        )
-build_and_install_xacro_files(${XACRO_FILES})
-
-install(DIRECTORY urdf
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-        )
+ament_package()

@@ -1,4 +1,4 @@
-import rospy
+import rclpy
 from senseglove_shared_resources.msg import SenseGloveState, FingerDistanceFloats
 from finger_distance_calibration import Calibration
 from math import sqrt, pow

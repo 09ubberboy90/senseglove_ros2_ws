@@ -1,0 +1,9 @@
+<library path="senseglove_hardware_interface">
+  <class name="senseglove_hardware_interface/SenseGloveHardwareInterface"
+         type="senseglove_hardware_interface::SenseGloveHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+		ROS2 Control System Driver for the Senseglove.
+    </description>
+  </class>
+</library>
