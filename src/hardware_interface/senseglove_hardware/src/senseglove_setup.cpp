@@ -59,9 +59,4 @@ namespace senseglove
         stopCommunication();
     }
 
-    const std::shared_ptr<urdf::Model> SenseGloveSetup::getRobotUrdf()
-    {
-        return this->getSenseGloveRobot().getUrdf();
-    }
-
 } // namespace senseglove

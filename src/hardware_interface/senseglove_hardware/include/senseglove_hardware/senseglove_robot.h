@@ -13,8 +13,6 @@
 #include <string>
 #include <vector>
 
-#include <urdf/model.h>
-
 namespace senseglove
 {
     class SenseGloveRobot
@@ -29,7 +27,6 @@ namespace senseglove
         std::vector<SGCore::Kinematics::Vect3D> tip_positions_;
         SGCore::HandPose hand_pose_;
         ::std::vector<Joint> joint_list_;
-        std::shared_ptr<urdf::Model> urdf_;
         const std::string name_;
         const SGCore::DeviceType device_type_;
         const int robot_index_;
@@ -39,7 +36,7 @@ namespace senseglove
     public:
         using iterator = std::vector<Joint>::iterator;
 
-        SenseGloveRobot(SGCore::SG::SenseGlove glove, ::std::vector<Joint> jointList, std::shared_ptr<urdf::Model> urdf, int robotIndex,
+        SenseGloveRobot(SGCore::SG::SenseGlove glove, ::std::vector<Joint> jointList, int robotIndex,
                         bool is_right);
 
         ~SenseGloveRobot();
@@ -75,7 +72,6 @@ namespace senseglove
         iterator begin();
         iterator end();
 
-        const std::shared_ptr<urdf::Model> getUrdf() const;
 
         bool updateGloveData();
 

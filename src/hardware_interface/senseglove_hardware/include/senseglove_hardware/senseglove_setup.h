@@ -11,8 +11,6 @@
 #include <string>
 #include <vector>
 
-#include <urdf/model.h>
-
 namespace senseglove
 {
     class SenseGloveSetup
@@ -49,8 +47,6 @@ namespace senseglove
 
         iterator begin();
         iterator end();
-
-        const std::shared_ptr<urdf::Model> getRobotUrdf();
 
     };
 } // namespace senseglove

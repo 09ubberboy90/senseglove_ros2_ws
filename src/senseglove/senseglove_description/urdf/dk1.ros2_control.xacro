@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="dk1_ros2_control" params="robot_type:=dk1 is_right:=true nr_of_glove:=0">
+        <ros2_control name="SenseGloveHardwareInterface" type="system">
+            <hardware>
+                <plugin>senseglove_hardware_interface/SenseGloveHardwareInterface</plugin>
+                <param name="robot_type">${robot_type}</param>
+                <param name="is_right">${is_right}</param>
+                <param name="nr_of_glove">${nr_of_glove}</param>
+            </hardware>
+            <joint name="thumb_brake">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="index_brake">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="middle_brake">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="ring_brake">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="pinky_brake">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="thumb_cmc">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="index_mcp">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="middle_mcp">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="ring_mcp">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+            <joint name="pinky_mcp">
+                <command_interface name="position" />
+                <command_interface name="velocity" />
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+        </ros2_control>
+
+    </xacro:macro>
+
+</robot>

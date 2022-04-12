@@ -14,7 +14,7 @@
 
 #include <senseglove_hardware/senseglove_robot.h>
 #include <senseglove_hardware/senseglove_setup.h>
-// #include <senseglove_hardware_builder/include/senseglove_hardware_builder/hardware_builder.h>
+
 #include <senseglove_hardware_builder/hardware_builder.h>
 #include <senseglove_shared_resources/msg/sense_glove_state.hpp>
 

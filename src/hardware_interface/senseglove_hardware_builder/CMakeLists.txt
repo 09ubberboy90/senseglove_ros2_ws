@@ -6,7 +6,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(urdf REQUIRED)
 find_package(senseglove_hardware REQUIRED)
 
 find_library(SGCORE
@@ -39,19 +38,24 @@ ament_target_dependencies(
   senseglove_hardware_builder
   senseglove_hardware
   rclcpp
-  urdf
 )
 
 install(DIRECTORY robots
         DESTINATION share/${PROJECT_NAME}
         )
 
-install(TARGETS ${PROJECT_NAME}
-        DESTINATION lib/${PROJECT_NAME}
+install(
+  TARGETS  ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
         )
-
+        
 install(DIRECTORY include/
   DESTINATION include/)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

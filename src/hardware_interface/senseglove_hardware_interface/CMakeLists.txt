@@ -7,7 +7,6 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(urdf REQUIRED)
 find_package(joint_state_broadcaster REQUIRED)
 find_package(joint_trajectory_controller REQUIRED)
 find_package(senseglove_hardware REQUIRED)
@@ -19,6 +18,8 @@ find_package(rclcpp REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(controller_manager REQUIRED)
 find_package(hardware_interface REQUIRED)
+find_package(backward_ros REQUIRED)
+
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -61,17 +62,17 @@ ament_target_dependencies(
         senseglove_hardware_builder
         senseglove_shared_resources
         std_msgs
-        urdf
         hardware_interface
       )
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface_plugin.xml)
 
 add_executable(${PROJECT_NAME}_node 
         src/${PROJECT_NAME}_node.cpp
+        src/${PROJECT_NAME}.cpp
         include/senseglove_hardware_interface/senseglove_hardware_interface.h
         )
-# target_include_directories(${PROJECT_NAME}_node PUBLIC ${controller_manager_INCLUDE_DIRS})
-# target_link_libraries(${PROJECT_NAME}_node ${controller_manager_LIBRARIES})
+target_include_directories(${PROJECT_NAME}_node PUBLIC ${controller_manager_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME}_node ${controller_manager_LIBRARIES})
 ament_target_dependencies(
         senseglove_hardware_interface_node
         controller_manager
@@ -84,7 +85,6 @@ ament_target_dependencies(
         senseglove_hardware_builder
         senseglove_shared_resources
         std_msgs
-        urdf
         hardware_interface
       )
         
@@ -96,19 +96,23 @@ install(DIRECTORY config launch
 ament_export_include_directories(
   include
 )
-ament_export_libraries(
-  ${PROJECT_NAME}
-)  
-install(TARGETS ${PROJECT_NAME}
-      DESTINATION lib
-        )
-install(TARGETS ${PROJECT_NAME}_node
-        DESTINATION lib/${PROJECT_NAME}
-        )
 
+install(TARGETS ${PROJECT_NAME}
+DESTINATION lib
+)
+
+install(TARGETS ${PROJECT_NAME}_node
+DESTINATION lib/${PROJECT_NAME}
+)
 install(DIRECTORY include/
   DESTINATION include/)
 
+ament_export_libraries(
+  ${PROJECT_NAME}
+)  
+install(DIRECTORY include/
+  DESTINATION include
+)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

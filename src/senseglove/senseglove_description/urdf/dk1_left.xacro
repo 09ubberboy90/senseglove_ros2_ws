@@ -2,6 +2,10 @@
 <!-- Revolute-Revolute Manipulator -->
 <robot name="dk1" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+    <xacro:include filename="$(find senseglove_description)/urdf/dk1.ros2_control.xacro"/>
+    <xacro:dk1_ros2_control
+    robot_type="dk1" is_right="false" nr_of_glove="1" />
+
     <!-- Constants for robot dimensions -->
     <xacro:property name="PI" value="3.1415926535897931"/>
     <xacro:property name="joint_base_mass" value="1"/> <!-- arbitrary value for joint_base_mass -->

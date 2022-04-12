@@ -16,11 +16,10 @@
 
 namespace senseglove
 {
-    SenseGloveRobot::SenseGloveRobot(SGCore::SG::SenseGlove glove, ::std::vector<Joint> jointList, std::shared_ptr<urdf::Model> urdf,
+    SenseGloveRobot::SenseGloveRobot(SGCore::SG::SenseGlove glove, ::std::vector<Joint> jointList,
                                      int robotIndex, bool is_right)
-        : senseglove_(glove), hand_profile_(SGCore::SG::SG_HandProfile::Default(is_right)), hand_model_(SGCore::Kinematics::BasicHandModel::Default(is_right)), joint_list_(std::move(jointList)), urdf_(urdf), name_("senseglove/" + std::to_string(int((robotIndex) / 2))), device_type_(this->senseglove_.GetDeviceType()), robot_index_(robotIndex), is_right_(is_right), updated_(false)
+        : senseglove_(glove), hand_profile_(SGCore::SG::SG_HandProfile::Default(is_right)), hand_model_(SGCore::Kinematics::BasicHandModel::Default(is_right)), joint_list_(std::move(jointList)), name_("senseglove/" + std::to_string(int((robotIndex) / 2))), device_type_(this->senseglove_.GetDeviceType()), robot_index_(robotIndex), is_right_(is_right), updated_(false)
     {
-        urdf_ = std::move(urdf);
     }
 
     std::string SenseGloveRobot::getName() const
@@ -179,11 +178,6 @@ namespace senseglove
         }
         updated_ |= (glove_update && hand_update);
         return updated_;
-    }
-
-    const std::shared_ptr<urdf::Model> SenseGloveRobot::getUrdf() const
-    {
-        return this->urdf_;
     }
 
 } // namespace senseglove

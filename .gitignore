@@ -16,3 +16,4 @@ src/CMakeLists.txt
 
 .idea/*
 .catkin_tools/*
+.vscode/**

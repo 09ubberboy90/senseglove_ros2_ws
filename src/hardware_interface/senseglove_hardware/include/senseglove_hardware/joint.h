@@ -5,7 +5,6 @@
 #include <memory>
 #include <senseglove_hardware/actuation_mode.h>
 #include <string>
-#include <urdf/model.h>
 #include <utility>
 #include <vector>
 

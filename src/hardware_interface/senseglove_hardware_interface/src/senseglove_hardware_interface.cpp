@@ -12,12 +12,22 @@
 
 #include <urdf/model.h>
 
+bool to_bool(std::string str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    std::istringstream is(str);
+    bool b;
+    is >> std::boolalpha >> b;
+    return b;
+}
+
 CallbackReturn SenseGloveHardwareInterface::on_activate(const rclcpp_lifecycle::State &previous_state)
 {
     std::string robot_type = info_.hardware_parameters["robot_type"];
-    std::string hand_type = info_.hardware_parameters["hand_type"];
+    std::string hand_type = info_.hardware_parameters["is_right"];
+    std::string nr_of_glove = info_.hardware_parameters["nr_of_glove"];
     AllowedRobot robot = AllowedRobot(robot_type);
-    HardwareBuilder builder(robot, hand_type.find("right") != std::string::npos);
+    HardwareBuilder builder = HardwareBuilder(robot, std::stoi( nr_of_glove ), to_bool(hand_type));
     try
     {
         senseglove_setup_ = builder.createSenseGloveSetup();
@@ -253,12 +263,6 @@ hardware_interface::return_type SenseGloveHardwareInterface::prepare_command_mod
             }
         }
     }
-    // set new mode to all interfaces at the same time
-    if (start_modes_.size() != 0 && start_modes_.size() != 6)
-    {
-        ret_val = hardware_interface::return_type::ERROR;
-    }
-
     // all start interfaces must be the same - can't mix position and velocity control
     if (start_modes_.size() != 0 && !std::equal(start_modes_.begin() + 1, start_modes_.end(), start_modes_.begin()))
     {
