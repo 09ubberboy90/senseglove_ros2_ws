@@ -9,78 +9,57 @@
                 <param name="is_right">${is_right}</param>
                 <param name="nr_of_glove">${nr_of_glove}</param>
             </hardware>
-            <joint name="thumb_brake">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="index_brake">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="middle_brake">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="ring_brake">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="pinky_brake">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="thumb_cmc">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="index_mcp">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="middle_mcp">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="ring_mcp">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
-            <joint name="pinky_mcp">
-                <command_interface name="position" />
-                <command_interface name="velocity" />
-                <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/>
-            </joint>
+            <!-- <xacro:joints_state_interface joints_name="thumb_mcp" />
+            <xacro:joints_state_interface joints_name="thumb_pip" />
+            <xacro:joints_state_interface joints_name="index_pip" />
+            <xacro:joints_state_interface joints_name="index_dip" />
+            <xacro:joints_state_interface joints_name="middle_pip" />
+            <xacro:joints_state_interface joints_name="middle_dip" />
+            <xacro:joints_state_interface joints_name="ring_pip" />
+            <xacro:joints_state_interface joints_name="ring_dip" />
+            <xacro:joints_state_interface joints_name="pinky_pip" />
+            <xacro:joints_state_interface joints_name="pinky_dip" /> -->
+
+            <xacro:joints_command_interface joints_name="thumb_mcp" />
+            <xacro:joints_command_interface joints_name="thumb_pip" />
+            <xacro:joints_command_interface joints_name="index_pip" />
+            <xacro:joints_command_interface joints_name="index_dip" />
+            <xacro:joints_command_interface joints_name="middle_pip" />
+            <xacro:joints_command_interface joints_name="middle_dip" />
+            <xacro:joints_command_interface joints_name="ring_pip" />
+            <xacro:joints_command_interface joints_name="ring_dip" />
+            <xacro:joints_command_interface joints_name="pinky_pip" />
+            <xacro:joints_command_interface joints_name="pinky_dip" />
+
+
+            <xacro:joints_command_interface joints_name="thumb_cmc" />
+            <xacro:joints_command_interface joints_name="thumb_brake" />
+            <xacro:joints_command_interface joints_name="index_mcp" />
+            <xacro:joints_command_interface joints_name="index_brake" />
+            <xacro:joints_command_interface joints_name="middle_mcp" />
+            <xacro:joints_command_interface joints_name="middle_brake" />
+            <xacro:joints_command_interface joints_name="ring_mcp" />
+            <xacro:joints_command_interface joints_name="ring_brake" />
+            <xacro:joints_command_interface joints_name="pinky_mcp" />
+            <xacro:joints_command_interface joints_name="pinky_brake" />
         </ros2_control>
 
     </xacro:macro>
 
+    <xacro:macro name="joints_state_interface" params="joints_name">
+
+        <sensor name="${joints_name}">
+            <state_interface name="position"/>
+        </sensor>
+    </xacro:macro>
+    <xacro:macro name="joints_command_interface" params="joints_name">
+
+        <joint name="${joints_name}">
+            <command_interface name="position" />
+            <command_interface name="velocity" />
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+    </xacro:macro>
 </robot>

@@ -2,9 +2,13 @@
 <!-- Revolute-Revolute Manipulator -->
 <robot name="dk1" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+    <xacro:arg name="robot_type" default="dk1"/>
+    <xacro:arg name="is_right" default="false"/>
+    <xacro:arg name="nr_of_glove" default="1"/>
+
     <xacro:include filename="$(find senseglove_description)/urdf/dk1.ros2_control.xacro"/>
     <xacro:dk1_ros2_control
-    robot_type="dk1" is_right="true" nr_of_glove="0"/>
+    robot_type="$(arg robot_type)" is_right="$(arg is_right)" nr_of_glove="$(arg nr_of_glove)" />
 
     <!-- Constants for robot dimensions -->
     <xacro:property name="PI" value="3.1415926535897931"/>

@@ -161,7 +161,7 @@ hardware_interface::return_type SenseGloveHardwareInterface::read()
     {
         for (size_t i = 0; i < num_joints_; ++i)
         {
-            senseglove::Joint &joint = senseglove_setup_->getSenseGloveRobot().getJoint(i);
+            senseglove::Joint &joint = senseglove_setup_->getSenseGloveRobot().getJoint(info_.joints[i].name);
 
             joint_position_[i] = joint.getPosition();
             joint_velocity_[i] = joint.getVelocity();
@@ -179,9 +179,14 @@ hardware_interface::return_type SenseGloveHardwareInterface::write()
     senseglove::SenseGloveRobot &robot = senseglove_setup_->getSenseGloveRobot();
     for (size_t i = 0; i < num_joints_; i++)
     {
-        senseglove::Joint &joint = robot.getJoint(i);
+        senseglove::Joint &joint = robot.getJoint(info_.joints[i].name);
         if (joint.canActuate())
         {
+            if (joint.getName() == "pinky_brake")
+            {
+                // RCLCPP_INFO_STREAM(rclcpp::get_logger("Writings"), "" << joint.getName() << ": " << joint.getPosition() << joint_position_command_[i]);
+            }
+            
             if (joint.getActuationMode() == senseglove::ActuationMode::position)
             {
                 if (j % 2 == 1)

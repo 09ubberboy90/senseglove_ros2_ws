@@ -42,14 +42,24 @@ def generate_launch_description():
     handedness = PythonExpression(['"right" if "', is_right, '" == "true" else "left"'])
     short_handedness = PythonExpression(['"r" if "', is_right, '" == "true" else "l"'])
     # gloves_ns = PythonExpression(['"/senseglove/" + str(int(int(',nr_of_gloves,')/2)) + "/', short_handedness,'h/robot_description"'])
-    gloves_ns = PythonExpression(['"/senseglove/', short_handedness,'h/robot_description"'])
+    robot_description_ns = PythonExpression(['"/senseglove/', short_handedness,'h/robot_description"'])
+    gloves_ns = PythonExpression(['"/senseglove/', short_handedness,'h/joint_states"'])
 
     robot_description_path = PythonExpression(['str("urdf/',robot_type,'_', handedness, '.xacro")'])
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            PathJoinSubstitution([FindPackageShare("senseglove_description"),robot_description_path])
+            PathJoinSubstitution([FindPackageShare("senseglove_description"),robot_description_path]),
+            " ",
+            "robot_type:=",
+            robot_type,
+            " ",
+            "is_right:=",
+            is_right,
+            " ",
+            "nr_of_gloves:=",
+            nr_of_gloves,
         ])
 
     robot_description = {"robot_description": robot_description_content}
@@ -66,7 +76,7 @@ def generate_launch_description():
             output="both",
             parameters=[robot_description, {"ignore_timestamp":True}],
             remappings=[
-                ("robot_description", gloves_ns)
+                ("robot_description", robot_description_ns)
             ]
         ),
         launch_ros.actions.Node(
@@ -86,9 +96,16 @@ def generate_launch_description():
             output={
                 "stdout": "screen",
                 "stderr": "screen",
-            },        
+            },
+            remappings=[('joint_states', gloves_ns)],
+            arguments=[short_handedness]
+
+            # remappings=[
+            #     ("__ns", gloves_ns)
+            # ]
         ),
-        launch.actions.LogInfo(msg=robot_description_content)
+        
+        # launch.actions.LogInfo(msg=)
     ]+ declared_args)
     return ld
 

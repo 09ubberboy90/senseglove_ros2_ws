@@ -58,6 +58,9 @@ private:
     /* Shared memory */
     size_t num_gloves_ = 0;
     size_t num_joints_ = 0;
+    size_t num_sensors_ = 0;
+
+    std::vector<double> sensor_states_;
 
     std::vector<double> joint_position_;
     std::vector<double> joint_position_command_;

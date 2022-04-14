@@ -66,7 +66,7 @@ std::unique_ptr<senseglove::SenseGloveSetup> HardwareBuilder::createSenseGloveSe
     }
 
     std::vector<senseglove::Joint> joints = this->createJoints(config["joints"]);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("hardware_builder"), "Created joints " << nr_of_glove_);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("hardware_builder"), "Created joints " << joints.size());
     senseglove::SenseGloveRobot sensegloves =
         HardwareBuilder::createRobot(config, std::move(joints), current_glove, nr_of_glove_, is_right_);
     RCLCPP_INFO_STREAM(rclcpp::get_logger("hardware_builder"), "Created Robots " << sensegloves.getName() << ", " << nr_of_glove_ << ", is right: "
