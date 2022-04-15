@@ -25,9 +25,8 @@ CallbackReturn SenseGloveHardwareInterface::on_activate(const rclcpp_lifecycle::
 {
     std::string robot_type = info_.hardware_parameters["robot_type"];
     std::string hand_type = info_.hardware_parameters["is_right"];
-    std::string nr_of_glove = info_.hardware_parameters["nr_of_glove"];
     AllowedRobot robot = AllowedRobot(robot_type);
-    HardwareBuilder builder = HardwareBuilder(robot, std::stoi( nr_of_glove ), to_bool(hand_type));
+    HardwareBuilder builder = HardwareBuilder(robot, to_bool(hand_type));
     try
     {
         senseglove_setup_ = builder.createSenseGloveSetup();

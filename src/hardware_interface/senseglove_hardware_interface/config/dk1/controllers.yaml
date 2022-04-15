@@ -1,6 +1,7 @@
-controller_manager:
+# https://github.com/ros2/rclcpp/pull/1839/commits
+/**:
   ros__parameters:
-    update_rate: 500  # Hz
+    update_rate: 50  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -8,7 +9,29 @@ controller_manager:
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController  # Position interface because we are directly passing on commands
 
-joint_trajectory_controller:
+senseglove/rh/joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      - thumb_brake # FFB
+      - index_brake # FFB
+      - middle_brake # FFB
+      - ring_brake # FFB
+      - pinky_brake # FFB
+      - thumb_cmc # Buzzer
+      - index_mcp # Buzzer
+      - middle_mcp # Buzzer
+      - ring_mcp # Buzzer
+      - pinky_mcp # Buzzer
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: true
+
+senseglove/lh/joint_trajectory_controller:
   ros__parameters:
     joints:
       - thumb_brake # FFB

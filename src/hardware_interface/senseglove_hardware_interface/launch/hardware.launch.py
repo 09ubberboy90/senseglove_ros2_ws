@@ -29,21 +29,15 @@ def generate_launch_description():
             default_value='true',
             description='specify the righthandedness of the glove'
         ),
-        launch.actions.DeclareLaunchArgument(
-            name='nr_of_gloves',
-            default_value='0',
-            description='specify the index of the glove'
-        ),
     ]
     robot_type = LaunchConfiguration("robot")
     is_right = LaunchConfiguration("is_right")
-    nr_of_gloves = LaunchConfiguration("nr_of_gloves")
 
     handedness = PythonExpression(['"right" if "', is_right, '" == "true" else "left"'])
     short_handedness = PythonExpression(['"r" if "', is_right, '" == "true" else "l"'])
     # gloves_ns = PythonExpression(['"/senseglove/" + str(int(int(',nr_of_gloves,')/2)) + "/', short_handedness,'h/robot_description"'])
-    robot_description_ns = PythonExpression(['"/senseglove/', short_handedness,'h/robot_description"'])
-    gloves_ns = PythonExpression(['"/senseglove/', short_handedness,'h/joint_states"'])
+    controller_manager_ns = PythonExpression(['"/senseglove/', short_handedness,'h/controller_manager"'])
+    gloves_ns = PythonExpression(['"/senseglove/', short_handedness,'h/"'])
 
     robot_description_path = PythonExpression(['str("urdf/',robot_type,'_', handedness, '.xacro")'])
     robot_description_content = Command(
@@ -57,9 +51,6 @@ def generate_launch_description():
             " ",
             "is_right:=",
             is_right,
-            " ",
-            "nr_of_gloves:=",
-            nr_of_gloves,
         ])
 
     robot_description = {"robot_description": robot_description_content}
@@ -74,20 +65,19 @@ def generate_launch_description():
             executable='robot_state_publisher',
             name='robot_state_publisher',
             output="both",
-            parameters=[robot_description, {"ignore_timestamp":True}],
-            remappings=[
-                ("robot_description", robot_description_ns)
-            ]
+            parameters=[robot_description, {"ignore_timestamp":True, "frame_prefix": gloves_ns}],
+            namespace=gloves_ns,
         ),
         launch_ros.actions.Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+            arguments=["joint_state_broadcaster", "--controller-manager", controller_manager_ns],
         ),
         launch_ros.actions.Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_trajectory_controller", "-c", "/controller_manager"],
+            arguments=["joint_trajectory_controller", "-c", controller_manager_ns],
+
         ),
         launch_ros.actions.Node(
             package='senseglove_hardware_interface',
@@ -97,13 +87,11 @@ def generate_launch_description():
                 "stdout": "screen",
                 "stderr": "screen",
             },
-            remappings=[('joint_states', gloves_ns)],
-            # remappings=[
-            #     ("__ns", gloves_ns)
-            # ]
+            namespace=gloves_ns,
         ),
         
-        # launch.actions.LogInfo(msg=)
+        # launch.actions.LogInfo(msg=nr_of_gloves),
+        # launch.actions.LogInfo(msg=robot_description_content)
     ]+ declared_args)
     return ld
 

@@ -17,8 +17,8 @@ const std::vector<std::string> HardwareBuilder::JOINT_REQUIRED_KEYS = {"allowAct
                                                                        "maxPosition"};
 const std::vector<std::string> HardwareBuilder::ROBOT_REQUIRED_KEYS = {"deviceType"};
 
-HardwareBuilder::HardwareBuilder(AllowedRobot robot, int nr_of_glove, bool is_right)
-    : HardwareBuilder(robot.getFilePath(), nr_of_glove, is_right)
+HardwareBuilder::HardwareBuilder(AllowedRobot robot, bool is_right)
+    : HardwareBuilder(robot.getFilePath(), is_right)
 {
 }
 
@@ -27,8 +27,8 @@ HardwareBuilder::HardwareBuilder(AllowedRobot robot)
 {
 }
 
-HardwareBuilder::HardwareBuilder(const std::string &yaml_path, int nr_of_glove, bool is_right)
-    : robot_config_(YAML::LoadFile(yaml_path)), nr_of_glove_(nr_of_glove), is_right_(is_right)
+HardwareBuilder::HardwareBuilder(const std::string &yaml_path, bool is_right)
+    : robot_config_(YAML::LoadFile(yaml_path)), is_right_(is_right)
 {
 }
 
@@ -46,7 +46,7 @@ std::unique_ptr<senseglove::SenseGloveSetup> HardwareBuilder::createSenseGloveSe
     YAML::Node config = this->robot_config_[robot_name];
 
     std::vector<SGCore::SG::SenseGlove> all_gloves = SGCore::SG::SenseGlove::GetSenseGloves();
-    auto current_glove = all_gloves[nr_of_glove_]; // Will be update later
+    SGCore::SG::SenseGlove current_glove; // Will be update later
     RCLCPP_DEBUG_STREAM(rclcpp::get_logger("hardware_builder"), "creating sensegloves");
 
     if (SGCore::DeviceList::SenseCommRunning())
@@ -68,8 +68,8 @@ std::unique_ptr<senseglove::SenseGloveSetup> HardwareBuilder::createSenseGloveSe
     std::vector<senseglove::Joint> joints = this->createJoints(config["joints"]);
     RCLCPP_INFO_STREAM(rclcpp::get_logger("hardware_builder"), "Created joints " << joints.size());
     senseglove::SenseGloveRobot sensegloves =
-        HardwareBuilder::createRobot(config, std::move(joints), current_glove, nr_of_glove_, is_right_);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("hardware_builder"), "Created Robots " << sensegloves.getName() << ", " << nr_of_glove_ << ", is right: "
+        HardwareBuilder::createRobot(config, std::move(joints), current_glove, is_right_);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("hardware_builder"), "Created Robots " << sensegloves.getName() << ", is right: "
                                                                                  << sensegloves.getRight() << " is urdfright: " << current_glove.IsRight());
     RCLCPP_DEBUG_STREAM(rclcpp::get_logger("hardware_builder"), "Robot config:\n"
                                                                    << config);
@@ -104,22 +104,21 @@ senseglove::Joint HardwareBuilder::createJoint(const YAML::Node &joint_config, c
 
 senseglove::SenseGloveRobot HardwareBuilder::createRobot(const YAML::Node &robot_config,
                                                          std::vector<senseglove::Joint> jointList,
-                                                         SGCore::SG::SenseGlove glove, int robot_index,
+                                                         SGCore::SG::SenseGlove glove,
                                                          bool is_arg_right)
 {
-    RCLCPP_DEBUG(rclcpp::get_logger("hardware_builder"), "Starting creation of glove %d", robot_index);
+    RCLCPP_DEBUG(rclcpp::get_logger("hardware_builder"), "Starting creation of glove %s", glove.ToString().c_str());
     HardwareBuilder::validateRequiredKeysExist(robot_config, HardwareBuilder::ROBOT_REQUIRED_KEYS, "glove");
     bool is_glove_right = glove.IsRight();
 
     if (is_glove_right xor is_arg_right)
     {
-        RCLCPP_ERROR(rclcpp::get_logger("hardware_builder"), "robot_index/ glove_nr and right-handedness do not match!\n %d, %d"
-                                                             "\nPlease launch with correct nr_of_glove argument (1 for left, 2 for right).",
+        RCLCPP_ERROR(rclcpp::get_logger("hardware_builder"), "IsRight parameters does not match found glove!\n %d, %d",
                      is_glove_right, is_arg_right);
         std::exit(1);
     }
 
-    return {glove, std::move(jointList), robot_index, is_glove_right};
+    return {glove, std::move(jointList), is_glove_right};
 }
 
 void HardwareBuilder::validateRequiredKeysExist(const YAML::Node &config, const std::vector<std::string> &key_list,
@@ -157,8 +156,7 @@ std::vector<senseglove::SenseGloveRobot> HardwareBuilder::createRobots(
     int i = 0;
     for (auto &glove : all_gloves)
     {
-        robots.push_back(HardwareBuilder::createRobot(robots_config, std::move(jointList), glove, i, true)); // dubious
-                                                                                                                              // fix
+        robots.push_back(HardwareBuilder::createRobot(robots_config, std::move(jointList), glove, true)); // dubious fix
         i++;
     }
 
@@ -168,16 +166,18 @@ std::vector<senseglove::SenseGloveRobot> HardwareBuilder::createRobots(
 
 SGCore::SG::SenseGlove HardwareBuilder::correct_glove(std::vector<SGCore::SG::SenseGlove> gloves) const
 {
-    int mod = nr_of_glove_ % 2;
-    auto choice_a = gloves[nr_of_glove_];
-    bool not_equal = choice_a.IsRight() xor is_right_;
-    if (mod == 0 && not_equal)
+    for (auto &glove :gloves)
     {
-        return gloves[nr_of_glove_ + 1];
+        if (glove.IsRight() && is_right_)
+        {
+            return glove;
+        }
+        if (!glove.IsRight() && !is_right_)
+        {
+            return glove;
+        }
     }
-    else if (mod == 1 && not_equal)
-    {
-        return gloves[nr_of_glove_ - 1];
-    }
-    return choice_a;
+    // Should never happen
+    RCLCPP_WARN(rclcpp::get_logger("hardware_builder"), "Returning first glove as none matching the requirement could be found");
+    return gloves[0];
 }

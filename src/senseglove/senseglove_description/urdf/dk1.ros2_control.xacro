@@ -7,7 +7,6 @@
                 <plugin>senseglove_hardware_interface/SenseGloveHardwareInterface</plugin>
                 <param name="robot_type">${robot_type}</param>
                 <param name="is_right">${is_right}</param>
-                <param name="nr_of_glove">${nr_of_glove}</param>
             </hardware>
             <!-- <xacro:joints_state_interface joints_name="thumb_mcp" />
             <xacro:joints_state_interface joints_name="thumb_pip" />

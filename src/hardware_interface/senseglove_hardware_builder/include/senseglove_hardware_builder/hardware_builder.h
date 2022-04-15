@@ -25,7 +25,7 @@ public:
      * @brief Initialises a HardwareBuilder with a robotName enumerator.
      * @details Grabs the .yaml file associated with the robot name.
      */
-    explicit HardwareBuilder(AllowedRobot robot, int nr_of_glove, bool is_right);
+    explicit HardwareBuilder(AllowedRobot robot, bool is_right);
 
     /**
      * @brief Initialises with a robot name
@@ -35,7 +35,7 @@ public:
     /**
      * @brief Initialises a HardwareBuilder with a path to a .yaml file.
      */
-    explicit HardwareBuilder(const std::string &yaml_path, int nr_of_glove, bool is_right);
+    explicit HardwareBuilder(const std::string &yaml_path, bool is_right);
 
     /**
      * @brief Initialises with a path to yaml
@@ -60,7 +60,7 @@ public:
     static senseglove::Joint createJoint(const YAML::Node &joint_config, const std::string &joint_name);
     static senseglove::SenseGloveRobot createRobot(const YAML::Node &joint_config,
                                                    std::vector<senseglove::Joint> joints, SGCore::SG::SenseGlove glove,
-                                                   int robot_index, bool is_arg_right);
+                                                   bool is_arg_right);
 
     static const std::vector<std::string> JOINT_REQUIRED_KEYS;
     static const std::vector<std::string> ROBOT_REQUIRED_KEYS;
@@ -79,7 +79,6 @@ private:
     SGCore::SG::SenseGlove correct_glove(std::vector<SGCore::SG::SenseGlove> gloves) const;
 
     YAML::Node robot_config_;
-    int nr_of_glove_;
     bool is_right_;
 };
 

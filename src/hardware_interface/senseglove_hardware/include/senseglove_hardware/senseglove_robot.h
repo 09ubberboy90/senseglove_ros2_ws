@@ -29,14 +29,13 @@ namespace senseglove
         ::std::vector<Joint> joint_list_;
         const std::string name_;
         const SGCore::DeviceType device_type_;
-        const int robot_index_;
         bool is_right_;
         bool updated_;
 
     public:
         using iterator = std::vector<Joint>::iterator;
 
-        SenseGloveRobot(SGCore::SG::SenseGlove glove, ::std::vector<Joint> jointList, int robotIndex,
+        SenseGloveRobot(SGCore::SG::SenseGlove glove, ::std::vector<Joint> jointList,
                         bool is_right);
 
         ~SenseGloveRobot();
@@ -50,7 +49,6 @@ namespace senseglove
         SenseGloveRobot &operator=(SenseGloveRobot &&) = delete;
 
         std::string getName() const;
-        int getIndex() const;
         bool getRight();
 
         Joint &getJoint(::std::string jointName);

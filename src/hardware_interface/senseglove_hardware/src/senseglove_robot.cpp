@@ -17,19 +17,14 @@
 namespace senseglove
 {
     SenseGloveRobot::SenseGloveRobot(SGCore::SG::SenseGlove glove, ::std::vector<Joint> jointList,
-                                     int robotIndex, bool is_right)
-        : senseglove_(glove), hand_profile_(SGCore::SG::SG_HandProfile::Default(is_right)), hand_model_(SGCore::Kinematics::BasicHandModel::Default(is_right)), joint_list_(std::move(jointList)), name_("senseglove/" + std::to_string(int((robotIndex) / 2))), device_type_(this->senseglove_.GetDeviceType()), robot_index_(robotIndex), is_right_(is_right), updated_(false)
+                                     bool is_right)
+        : senseglove_(glove), hand_profile_(SGCore::SG::SG_HandProfile::Default(is_right)), hand_model_(SGCore::Kinematics::BasicHandModel::Default(is_right)), joint_list_(std::move(jointList)), name_(std::string("senseglove/").append(is_right ? "rh" : "lf")), device_type_(this->senseglove_.GetDeviceType()), is_right_(is_right), updated_(false)
     {
     }
 
     std::string SenseGloveRobot::getName() const
     {
         return this->name_;
-    }
-
-    int SenseGloveRobot::getIndex() const
-    {
-        return this->robot_index_;
     }
 
     bool SenseGloveRobot::getRight()
