@@ -11,7 +11,6 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-find_package(actionlib_msgs REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
@@ -21,6 +20,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/FingerDistances.msg"
   "msg/KinematicsVect3D.msg"
   "msg/SenseGloveState.msg"
+  "srv/PinchCalibration.srv"
  )
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

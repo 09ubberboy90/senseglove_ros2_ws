@@ -1,12 +1,14 @@
 from __future__ import print_function
 from collections import deque
-import rclpy
+import rclpy 
+from rclpy.node import Node
 import sys
 from os.path import isdir, exists
 from senseglove_shared_resources.msg import FingerDistanceFloats
-
-
-class Calibration:
+from senseglove_shared_resources.srv import PinchCalibration
+from ament_index_python.packages import get_package_share_directory
+from time import time
+class Calibration(Node):
     """
     Class used by a finger distance controller to calibrate the distances between the fingertips of the user.
     The objects of this class are used as an interface to execute calibrating commands.
@@ -25,7 +27,11 @@ class Calibration:
         # Defaults
         self.pinch_calibration_min = [0.0, 0.0, 0.0]  # [index, middle, ring][x, y, z] random values from Kees
         self.pinch_calibration_max = [100.0, 100.0, 100.0]  # [index, middle, ring] in mm
+        self.senseglove_ns = "senseglove/" + str(self.handedness_list[int(glove_nr) % 2])
+        self.pinch_min_publisher_ = self.create_service(PinchCalibration, f"{self.senseglove_ns}/pinch_calibration_min", self.get_min_pinch)
+        self.pinch_max_publisher_ = self.create_service(PinchCalibration, f"{self.senseglove_ns}/pinch_calibration_max", self.get_max_pinch)
 
+        
         self.avg_open_flat = [0.0, 0.0, 0.0]  # distances between thumb&index thumb&middle thumb&ring
         self.avg_thumb_index_pinch = [0.0, 0.0, 0.0]
         self.avg_thumb_middle_pinch = [0.0, 0.0, 0.0]
@@ -39,6 +45,18 @@ class Calibration:
         self.calib_time = 2  # sec
 
         self.databuffer = deque(maxlen=10)
+
+    def get_min_pinch(self, request, response):
+        response.index = self.pinch_calibration_min[0]
+        response.middle = self.pinch_calibration_min[1]
+        response.ring = self.pinch_calibration_min[2]
+        return response
+
+    def get_max_pinch(self, request, response):
+        response.index = self.pinch_calibration_max[0]
+        response.middle = self.pinch_calibration_max[1]
+        response.ring = self.pinch_calibration_max[2]
+        return response
 
     def set_open_flat(self, avg_positions_msg):
         """
@@ -59,7 +77,7 @@ class Calibration:
         self.avg_thumb_index_pinch = [avg_positions_msg.th_ff.data, avg_positions_msg.th_mf.data,
                                       avg_positions_msg.th_rf.data]
         if self.avg_thumb_index_pinch == self.avg_open_flat:
-            rospy.logwarn("Identical measurements! Cannot calibrate. Is your glove still connected?")
+            self.get_logger().warning("Identical measurements! Cannot calibrate. Is your glove still connected?")
             return
 
         self.finished_thumb_index_pinch = True
@@ -75,7 +93,7 @@ class Calibration:
         self.avg_thumb_middle_pinch = [avg_positions_msg.th_ff.data, avg_positions_msg.th_mf.data,
                                        avg_positions_msg.th_rf.data]
         if self.avg_thumb_middle_pinch == self.avg_open_flat:
-            rospy.logwarn("Identical measurements! Cannot calibrate. Is your glove still connected?")
+            self.get_logger().warning("Identical measurements! Cannot calibrate. Is your glove still connected?")
             return
 
         self.finished_thumb_middle_pinch = True
@@ -91,7 +109,7 @@ class Calibration:
         self.avg_thumb_ring_pinch = [avg_positions_msg.th_ff.data, avg_positions_msg.th_mf.data,
                                      avg_positions_msg.th_rf.data]
         if self.avg_thumb_ring_pinch == self.avg_open_flat:
-            rospy.logwarn("Identical measurements! Cannot calibrate. Is your glove still connected?")
+            self.get_logger().warning("Identical measurements! Cannot calibrate. Is your glove still connected?")
             return
 
         self.finished_thumb_ring_pinch = True
@@ -104,10 +122,10 @@ class Calibration:
         Run an interactive (CLI) session for calibration.
         """
         topic_name = str(self.handedness_list[int(self.glove_nr) % 2]) + '/senseglove/finger_distances'
-        rospy.Subscriber(topic_name, FingerDistanceFloats, callback=self.senseglove_callback, queue_size=1)
+        self.subscription = self.create_subscription(FingerDistanceFloats,topic_name, self.senseglove_callback, 10)
 
-        rospy.loginfo("Calibration of senseglove started, please flatten your hand.")
-        rospy.loginfo("Type [y] + [Enter] when ready, or [q] + [Enter] to quit.")
+        self.get_logger().info("Calibration of senseglove started, please flatten your hand.")
+        self.get_logger().info("Type [y] + [Enter] when ready, or [q] + [Enter] to quit.")
 
         self.key_press_interface()
         self.log_finger_distances()
@@ -115,10 +133,10 @@ class Calibration:
         # Set average values for flat hand
         self.set_open_flat(self.get_avg_finger_distances())
 
-        rospy.loginfo("Step 1 done.")
+        self.get_logger().info("Step 1 done.")
 
-        rospy.loginfo("Calibration step 2, please pinch with your index finger and thumb.")
-        rospy.loginfo("Type [y] + [Enter] when ready, or [q] + [Enter] to quit.")
+        self.get_logger().info("Calibration step 2, please pinch with your index finger and thumb.")
+        self.get_logger().info("Type [y] + [Enter] when ready, or [q] + [Enter] to quit.")
 
         self.key_press_interface()
         self.log_finger_distances()
@@ -126,13 +144,13 @@ class Calibration:
         # Set average values for pinch between thumb and index finger
         self.set_thumb_index_pinch(self.get_avg_finger_distances())
         if not self.finished_thumb_index_pinch:
-            rospy.logerr("Could not finish thumb to index pinch calibration, calibration failed")
+            self.get_logger().error("Could not finish thumb to index pinch calibration, calibration failed")
             return False
 
-        rospy.loginfo("Step 2 done")
+        self.get_logger().info("Step 2 done")
 
-        rospy.loginfo("Calibration step 3, please pinch with your middle finger and thumb.")
-        rospy.loginfo("Type [y] + [Enter] when ready, or [q] + [Enter] to quit.")
+        self.get_logger().info("Calibration step 3, please pinch with your middle finger and thumb.")
+        self.get_logger().info("Type [y] + [Enter] when ready, or [q] + [Enter] to quit.")
 
         self.key_press_interface()
         self.log_finger_distances()
@@ -140,13 +158,13 @@ class Calibration:
         # Set average values for pinch between thumb and middle finger
         self.set_thumb_middle_pinch(self.get_avg_finger_distances())
         if not self.finished_thumb_middle_pinch:
-            rospy.logerr("Could not finish thumb to middle pinch calibration, calibration failed")
+            self.get_logger().error("Could not finish thumb to middle pinch calibration, calibration failed")
             return False
 
-        rospy.loginfo("Step 3 done")
+        self.get_logger().info("Step 3 done")
 
-        rospy.loginfo("Calibration step 4, please pinch with your ring finger and thumb.")
-        rospy.loginfo("Type [y] + [Enter] when ready, or [q] + [Enter] to quit.")
+        self.get_logger().info("Calibration step 4, please pinch with your ring finger and thumb.")
+        self.get_logger().info("Type [y] + [Enter] when ready, or [q] + [Enter] to quit.")
 
         self.key_press_interface()
         self.log_finger_distances()
@@ -154,12 +172,12 @@ class Calibration:
         # Set average values for pinch between thumb and ring finger
         self.set_thumb_ring_pinch(self.get_avg_finger_distances())
         if not self.finished_thumb_ring_pinch:
-            rospy.logerr("Could not finish thumb to index pinch calibration, calibration failed")
+            self.get_logger().error("Could not finish thumb to index pinch calibration, calibration failed")
             return False
 
-        rospy.loginfo("Step 4 (Final step) done")
+        self.get_logger().info("Step 4 (Final step) done")
 
-        rospy.loginfo("Computing calibration parameters...")
+        self.get_logger().info("Computing calibration parameters...")
 
         """
         Calibration data:
@@ -174,32 +192,31 @@ class Calibration:
         # maximum value between fingers and the thumb to find corresponding interpolation data
         self.pinch_calibration_max = self.avg_open_flat
         if self.pinch_calibration_max == 0.0:
-            rospy.logwarn("Got max value zero. Is your glove still connected?")
+            self.get_logger().warning("Got max value zero. Is your glove still connected?")
             return False
 
-        rospy.loginfo("The calibration for '%s' is done. These are the numbers:" % self.name)
-        rospy.loginfo("Pinch calibration min: %s\n" % self.pinch_calibration_min)
-        rospy.loginfo("Pinch calibration max: %s\n" % self.pinch_calibration_max)
-        rospy.loginfo("Type [y] + [Enter] when OK, or [q] + [Enter] to discard and quit.")
+        self.get_logger().info("The calibration for '%s' is done. These are the numbers:" % self.name)
+        self.get_logger().info("Pinch calibration min: %s\n" % self.pinch_calibration_min)
+        self.get_logger().info("Pinch calibration max: %s\n" % self.pinch_calibration_max)
+        self.get_logger().info("Type [y] + [Enter] when OK, or [q] + [Enter] to discard and quit.")
 
         self.key_press_interface()
 
-        rospy.loginfo("Calibration successful!")
-        rospy.loginfo("Setting on param server and saving to file...")
+        self.get_logger().info("Calibration successful!")
+        self.get_logger().info("Setting on param server and saving to file...")
 
         # Set parameters
-        rospy.set_param('~pinch_calibration_min', self.pinch_calibration_min)
-        rospy.set_param('~pinch_calibration_max', self.pinch_calibration_max)
-        config_folder = rospkg.RosPack().get_path('senseglove_shared_resources') + "/calib"
-
+        config_folder = get_package_share_directory('senseglove_shared_resources') + "/calib"
         if not isdir(config_folder):
-            rospy.logwarn("Could not locate calibration folder %s, not saving." % config_folder)
+            self.get_logger().warning("Could not locate calibration folder %s, not saving." % config_folder)
         else:
             filename = config_folder + "/" + self.name + ".yaml"
             if exists(filename):
-                rospy.logwarn("Overwriting %s" % filename)
-            rosparam.dump_params(filename, rospy.get_name())
-            rospy.loginfo("Done!")
+                self.get_logger().warning("Overwriting %s" % filename)
+            with open(filename, "w") as f:
+                f.write(f"pinch_calibration_min: {self.pinch_calibration_min}") 
+                f.write(f"pinch_calibration_max: {self.pinch_calibration_max}") 
+            self.get_logger().info("Done!")
 
         return True
 
@@ -212,33 +229,33 @@ class Calibration:
 
         thumb_indexdata = [x.th_ff.data for x in self.databuffer]
         if len(thumb_indexdata) == 0:
-            rospy.logwarn("No data received! Is your glove still connected?")
+            self.get_logger().warning("No data received! Is your glove still connected?")
         else:
             avg_positions_msg.th_ff.data = sum(thumb_indexdata) / len(thumb_indexdata)
 
         thumb_middledata = [x.th_mf.data for x in self.databuffer]
         if len(thumb_middledata) == 0:
-            rospy.logwarn("No data received! Is your glove still connected?")
+            self.get_logger().warning("No data received! Is your glove still connected?")
         else:
             avg_positions_msg.th_mf.data = sum(thumb_middledata) / len(thumb_middledata)
 
         thumb_ringdata = [x.th_rf.data for x in self.databuffer]
         if len(thumb_ringdata) == 0:
-            rospy.logwarn("No data received! Is your glove still connected?")
+            self.get_logger().warning("No data received! Is your glove still connected?")
         else:
             avg_positions_msg.th_rf.data = sum(thumb_ringdata) / len(thumb_ringdata)
 
         return avg_positions_msg
 
     def key_press_interface(self):
-        k = raw_input()  # In python2 this works in python3 use input() instead
+        k = input()  # In python2 this works in python3 use input() instead
 
         while not (k == 'q' or k == 'y'):
-            rospy.loginfo("Not valid: %s. Type [y] + [Enter] when ready, or [q] + [Enter] to quit." % k)
-            k = raw_input()  # In python2 this works in python3 use input() instead
+            self.get_logger().info("Not valid: %s. Type [y] + [Enter] when ready, or [q] + [Enter] to quit." % k)
+            k = input()  # In python2 this works in python3 use input() instead
 
         if k == "q":
-            rospy.loginfo("Calibration aborted!")
+            self.get_logger().info("Calibration aborted!")
             return False
 
     def log_finger_distances(self):
@@ -246,5 +263,5 @@ class Calibration:
         for i in range(int(self.calib_time / 0.05)):
             print(".", end="")
             sys.stdout.flush()
-            rospy.sleep(0.05)
+            time.sleep(0.05)
         print()

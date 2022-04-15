@@ -98,8 +98,6 @@ def generate_launch_description():
                 "stderr": "screen",
             },
             remappings=[('joint_states', gloves_ns)],
-            arguments=[short_handedness]
-
             # remappings=[
             #     ("__ns", gloves_ns)
             # ]

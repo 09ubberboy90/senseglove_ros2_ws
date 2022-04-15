@@ -20,9 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'senseglove_finger_distance_node = senseglove_finger_distance.senseglove_finger_distance_node:main',
-             'senseglove_haptics_node = senseglove_finger_distance.senseglove_haptics_node:main',
-             'finger_distance_calibration = senseglove_finger_distance.finger_distance_calibration:main'
+            'senseglove_finger_distance_node = senseglove_finger_distance.finger_distance_node:main',
+            'senseglove_haptics_node = senseglove_finger_distance.haptics_node:main',
+            'haptics_node_interface = senseglove_finger_distance.haptics_node_action_interface:main'
         ],
     },
 )

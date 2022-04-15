@@ -1,20 +1,24 @@
 import rclpy
+from rclpy.node import Node
 from senseglove_shared_resources.msg import SenseGloveState, FingerDistanceFloats
+from senseglove_shared_resources.srv import PinchCalibration
 from finger_distance_calibration import Calibration
 from math import sqrt, pow
 
 
-class FingerTipHandler:
+class FingerTipHandler(Node):
     handedness_list = ["/lh", "/rh"]
 
     def __init__(self, glove_nr="1", calib_mode='nothing', finger_nrs=[3, 7, 11, 15, 19]):
+        super().__init__('senseglove_finger_distance_node')
         self.finger_nrs = finger_nrs
         self.calib_mode = calib_mode
         self.finger_tips = [FingerTipVector() for i in self.finger_nrs]
-        self.senseglove_ns = "/senseglove/" + str(int(glove_nr) / 2) + str(self.handedness_list[int(glove_nr) % 2])
-        rospy.Subscriber(self.senseglove_ns + "/senseglove_states", SenseGloveState,
-                         callback=self.callback, queue_size=1)  # queue size is necessary otherwise it is infinite
-        self.pub = rospy.Publisher(self.senseglove_ns + "/finger_distances", FingerDistanceFloats, queue_size=1)
+        self.senseglove_ns = "senseglove/" + str(self.handedness_list[int(glove_nr) % 2])
+        self.create_subscription(SenseGloveState, self.senseglove_ns + "/senseglove_states", self.callback, 10)
+        self.pub = self.create_publisher(FingerDistanceFloats, self.senseglove_ns + "/finger_distances" , 10)
+        self.pinch_min_cli = self.create_client(PinchCalibration, f"{self.senseglove_ns}/pinch_calibration_min")
+        self.pinch_max_cli = self.create_client(PinchCalibration, f"{self.senseglove_ns}/pinch_calibration_max")
 
         self.calibration = Calibration("default")
 
@@ -40,16 +44,37 @@ class FingerTipHandler:
         finger_distance_message.th_lf.data = (self.finger_tips[0] - self.finger_tips[4]).magnitude()
         self.pub.publish(finger_distance_message)
 
+    def make_service_request(self, service):
+        while not service.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+        self.req = PinchCalibration.Request()
+        future = service.call_async(self.req)
+        return future
+
+    def get_service_result(self, future):
+        if future.done():
+            try:
+                response = future.result()
+            except Exception as e:
+                self.get_logger().info(
+                    'Service call failed %r' % (e,))
+                return []
+            return response.calibration
+
+
     def callback(self, data):
         if not self.calibration.is_calibrated():
-            # If calibration on param server, load it
-            if rospy.has_param('~pinch_calibration_min') and rospy.has_param('~pinch_calibration_max'):
-                rospy.loginfo("Found calibration data on server")
+            min_future = self.get_service_result(self.make_service_request(self.pinch_min_cli))
+            max_future = self.get_service_result(self.make_service_request(self.pinch_max_cli))
+
+            if max_future != [] and min_future != []:
                 self.calibration = Calibration("from_param_server")
-                self.calibration.pinch_calibration_min = rospy.get_param('~pinch_calibration_min')
-                self.calibration.pinch_calibration_max = rospy.get_param('~pinch_calibration_max')
+                if min_future != []:
+                    self.pinch_calibration_min = min_future  # [index, middle, ring][x, y, z] random values from Kees
+                if max_future != []:
+                    self.pinch_calibration_max = max_future  # [index, middle, ring] in mm
             else:
-                rospy.logwarn_throttle(30, "No calibration data found, using defaults")
+                self.get_logger().warning("No calibration data found, using defaults")
 
         for i in range(len(self.finger_nrs)):
             self.finger_tips[i].x = data.finger_tip_positions[i].x
@@ -77,15 +102,15 @@ class FingerTipVector:
         return sqrt(pow(self.x, 2) + pow(self.y, 2) + pow(self.z, 2))
 
 
-def main(glove_nr, calib_mode):
-    rospy.init_node('senseglove_finger_distance_node')
-    rospy.loginfo("initialize finger distance node")
-    FingerTipHandler(glove_nr=glove_nr, calib_mode=calib_mode)
+def main(glove_nr, calib_mode, args=None):
+    rclpy.init(args=args)
+    node = FingerTipHandler(glove_nr=glove_nr, calib_mode=calib_mode)
 
-    while not rospy.is_shutdown():
-        rospy.sleep(0.5)
+    rclpy.spin(node)
 
-    if rospy.is_shutdown():
-        return
+    node.destroy_node()
 
-    rospy.spin()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
