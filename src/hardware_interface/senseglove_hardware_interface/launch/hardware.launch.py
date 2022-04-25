@@ -34,12 +34,15 @@ def generate_launch_description():
     is_right = LaunchConfiguration("is_right")
 
     handedness = PythonExpression(['"right" if "', is_right, '" == "true" else "left"'])
+    # REMOVE IF NOT USING ON THEIR OWN OR IF JUST USING ONE HAND
+    hand_offset = PythonExpression(['"-0.1" if "', is_right, '" == "true" else "0.1"']) 
     short_handedness = PythonExpression(['"r" if "', is_right, '" == "true" else "l"'])
-    # gloves_ns = PythonExpression(['"/senseglove/" + str(int(int(',nr_of_gloves,')/2)) + "/', short_handedness,'h/robot_description"'])
     controller_manager_ns = PythonExpression(['"/senseglove/', short_handedness,'h/controller_manager"'])
     gloves_ns = PythonExpression(['"/senseglove/', short_handedness,'h/"'])
+    world_ns = PythonExpression(['"/senseglove/', short_handedness,'h/world"'])
 
-    robot_description_path = PythonExpression(['str("urdf/',robot_type,'_', handedness, '.xacro")'])
+
+    robot_description_path = PythonExpression(['str("urdf/',robot_type,'_', handedness, '_inertia.xacro")'])
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -69,6 +72,22 @@ def generate_launch_description():
             namespace=gloves_ns,
         ),
         launch_ros.actions.Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            name='robot_state_publisher',
+            output="both",
+            parameters=[{
+            'robot_description': '<robot name=""><link name="world"/></robot>'
+            }],
+        ),
+        launch_ros.actions.Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="static_transform_publisher",
+            output="log",
+            arguments=[hand_offset, "0.0", "0.0", "0.0", "0.0", "0.0", "world", world_ns],
+        ),
+        launch_ros.actions.Node(
             package="controller_manager",
             executable="spawner",
             arguments=["joint_state_broadcaster", "--controller-manager", controller_manager_ns],
@@ -76,7 +95,12 @@ def generate_launch_description():
         launch_ros.actions.Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["joint_trajectory_controller", "-c", controller_manager_ns],
+            arguments=["joint_position_controller", "--controller-manager", controller_manager_ns],
+        ),
+        launch_ros.actions.Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["joint_trajectory_controller", "-c", controller_manager_ns, "--stopped"],
 
         ),
         launch_ros.actions.Node(
