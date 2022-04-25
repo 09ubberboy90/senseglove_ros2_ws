@@ -16,6 +16,7 @@ def generate_launch_description():
             launch_arguments={
                 'robot': 'dk1',
                 'is_right': 'false',
+                'hand_offset': 'true',
             }.items()
         ),
         launch.actions.IncludeLaunchDescription(
@@ -26,6 +27,7 @@ def generate_launch_description():
             launch_arguments={
                 'robot': 'dk1',                
                 'is_right': 'true',
+                'hand_offset': 'true',
                 
             }.items()
         )

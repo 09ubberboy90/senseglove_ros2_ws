@@ -42,11 +42,61 @@ write additions to this package, beware that this repository is still subject to
 **If you, as a user, find a bug or have an issue with getting the workspace up and running, we suggest you leave this as an issue on this repository.**
 This practice will allow others to troubleshoot their own problems quicker.
 
+### Reading and controlling the gloves 
+
+The gloves joint state can be listened by running `ros2 topic echo /senseglove/{lh or rh}/joint_states`
+
+They can be controlled by default by publishing to a topic :
+``` sh
+ros topic pub --once /senseglove/{lh or rh}/joint_position_controller/commands std_msgs/msg/Float64MultiArray '{data: [100,100,100,100,100,100,100,100,100,100]}'
+```
+This will set the first 5 joints aka the brakes to their most restrictive value and will activate the last 5 joints to vibrate at their biggest intensity.
+
+Running the same command with all set to 0 will deactivate them.
+
+`--once` will only run the command once
+
+-----
+
+Another control possibility is to used the action server and provide JointTrajectory:
+This method allow to control each joint individually (by providing more or less joint names without changing the others.
+
+Switch the controller using : `ros2 control switch_controllers --start joint_trajectory_controller --stop joint_position_controller`
+
+This will progressively increase the restriction applied on each finger. Setting a goal with position 0 will reset them.
+``` sh
+ros2 action send_goal /senseglove/lh/joint_trajectory_controller/follow_joint_trajectory control_msgs/action/FollowJointTrajectory -f "{
+  trajectory: {
+    joint_names: [thumb_brake, index_brake, middle_brake, ring_brake, pinky_brake],
+    points: [
+      { positions: [5,5,5,5,5], time_from_start: { sec: 0 } },
+      { positions: [15,15,15,15,15], time_from_start: { sec: 10 } },
+      { positions: [50,50,50,50,50], time_from_start: { sec: 20 } },
+      { positions: [100,100,100,100,100], time_from_start: { sec: 30 } }
+    ]
+  }
+}"                                                              
+```
+
+This will progressively increase the vibration of each finger. Setting a goal with position 0 will reset them.
+``` sh
+ros2 action send_goal /senseglove/lh/joint_trajectory_controller/follow_joint_trajectory control_msgs/action/FollowJointTrajectory -f "{
+  trajectory: {
+    joint_names: [thumb_cmc, index_mcp, middle_mcp, ring_mcp, pinky_mcp],
+    points: [
+      { positions: [5,5,5,5,5], time_from_start: { sec: 0 } },
+      { positions: [15,15,15,15,15], time_from_start: { sec: 10 } },
+      { positions: [50,50,50,50,50], time_from_start: { sec: 20 } },
+      { positions: [100,100,100,100,100], time_from_start: { sec: 30 } }
+    ]
+  }
+}"                                                              
+```
 ### Example; using two sensegloves in ROS: ###
 1. source your workspace
 2. make sure your sensegloves are connected through usb or bluetooth
     1. if you checked your connection with sensecom, be sure to exit the application before proceeding
-3. run: `ros launch senseglove_launch senseglove_hardware_demo.launch.py`
+3. run: `ros2 launch senseglove_launch senseglove_hardware_demo.launch.py`
 
 If all is well, your invocation of the ros launch command should have started all necessary nodes providing intefaces to the senseglove.
 In a second (properly sourced) terminal you can verify that these nodes are publishing by invoking: ros topic list
