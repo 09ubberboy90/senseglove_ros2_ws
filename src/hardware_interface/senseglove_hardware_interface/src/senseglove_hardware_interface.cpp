@@ -10,8 +10,6 @@
 #include <sstream>
 #include <string>
 
-#include <urdf/model.h>
-
 bool to_bool(std::string str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);

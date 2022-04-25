@@ -18,8 +18,6 @@
 #include <senseglove_hardware_builder/hardware_builder.h>
 #include <senseglove_shared_resources/msg/sense_glove_state.hpp>
 
-#include <sensor_msgs/msg/joint_state.hpp>
-
 /**
  * @brief HardwareInterface to allow rclcpp_control to actuate our hardware.
  * @details Register an interface for each joint such that they can be actuated

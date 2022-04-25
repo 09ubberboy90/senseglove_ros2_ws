@@ -16,6 +16,12 @@
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
+  <depend>senseglove_description</depend>
+  <depend>senseglove_finger_distance</depend>
+  <depend>senseglove_hardware</depend>
+  <depend>senseglove_hardware_interface</depend>
+  <depend>xacro</depend>
+
   <export>
     <build_type>ament_python</build_type>
   </export>

@@ -3,8 +3,9 @@
 <package format="3">
   <name>senseglove_shared_resources</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="2330834a@student.gla.ac.uk">ubb</maintainer>
+  <description>custom messages for the march packages</description>
+  <maintainer email="rogierkrijnen@live.nl">SenseGlove</maintainer>
+  <maintainer email="2330834a@student.gla.ac.uk">Florent Audonnet</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -12,6 +13,9 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <build_depend>rosidl_default_generators</build_depend>
+  <depend>std_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>control_msgs</depend>
 
   <exec_depend>rosidl_default_runtime</exec_depend>
 

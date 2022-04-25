@@ -7,19 +7,14 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(joint_state_broadcaster REQUIRED)
-find_package(joint_trajectory_controller REQUIRED)
 find_package(senseglove_hardware REQUIRED)
 find_package(senseglove_description REQUIRED)
 find_package(senseglove_hardware_builder REQUIRED)
 find_package(senseglove_shared_resources REQUIRED)
-find_package(std_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(realtime_tools REQUIRED)
 find_package(controller_manager REQUIRED)
 find_package(hardware_interface REQUIRED)
-find_package(backward_ros REQUIRED)
-
+find_package(pluginlib REQUIRED)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -53,16 +48,13 @@ target_include_directories(${PROJECT_NAME}
 ament_target_dependencies(
         senseglove_hardware_interface
         controller_manager
-        joint_trajectory_controller
-        joint_state_broadcaster
-        realtime_tools
         rclcpp
         senseglove_description
         senseglove_hardware
         senseglove_hardware_builder
         senseglove_shared_resources
-        std_msgs
         hardware_interface
+        pluginlib
       )
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface_plugin.xml)
 
@@ -76,16 +68,13 @@ target_link_libraries(${PROJECT_NAME}_node ${controller_manager_LIBRARIES})
 ament_target_dependencies(
         senseglove_hardware_interface_node
         controller_manager
-        joint_trajectory_controller
-        joint_state_broadcaster
-        realtime_tools
         rclcpp
         senseglove_description
         senseglove_hardware
         senseglove_hardware_builder
         senseglove_shared_resources
-        std_msgs
         hardware_interface
+        pluginlib
       )
         
 target_link_libraries(${PROJECT_NAME} ${SGCONNECT} ${SGCORE} yaml-cpp)
