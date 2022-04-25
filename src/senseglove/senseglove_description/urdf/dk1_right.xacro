@@ -1,18 +1,20 @@
 <?xml version="1.0"?>
 <!-- Revolute-Revolute Manipulator -->
-<robot name="dk1" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="dk1"
+    xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <xacro:arg name="robot_type" default="dk1"/>
-    <xacro:arg name="is_right" default="true"/>
+    <xacro:arg name="is_right" default="false"/>
 
     <xacro:include filename="$(find senseglove_description)/urdf/dk1.ros2_control.xacro"/>
-    <xacro:dk1_ros2_control
-    robot_type="$(arg robot_type)" is_right="$(arg is_right)" />
+    <xacro:dk1_ros2_control robot_type="$(arg robot_type)" is_right="$(arg is_right)" />
 
     <!-- Constants for robot dimensions -->
     <xacro:property name="PI" value="3.1415926535897931"/>
-    <xacro:property name="joint_base_mass" value="1"/> <!-- arbitrary value for joint_base_mass -->
-    <xacro:property name="joint_base_width" value="0.05"/> <!-- Cube dimensions (width x width x width) of joint base -->
+    <xacro:property name="joint_base_mass" value="1"/>
+    <!-- arbitrary value for joint_base_mass -->
+    <xacro:property name="joint_base_width" value="0.05"/>
+    <!-- Cube dimensions (width x width x width) of joint base -->
 
     <!-- Bar lengths -->
     <xacro:property name="brake_length" value="0.0418"/>
@@ -50,11 +52,15 @@
     <xacro:property name="bar_mass" value="1.080"/>
     <xacro:property name="bar_width" value="0.05"/>
 
-    <xacro:property name="joint_buffer" value="${3*pi/180}"/> <!-- rad -->
-    <xacro:property name="joint_lower_limit" value="${-8.5*pi/180}"/> <!-- rad -->
-    <xacro:property name="joint_upper_limit" value="${8.5*pi/180}"/> <!-- rad -->
+    <xacro:property name="joint_buffer" value="${3*pi/180}"/>
+    <!-- rad -->
+    <xacro:property name="joint_lower_limit" value="${-8.5*pi/180}"/>
+    <!-- rad -->
+    <xacro:property name="joint_upper_limit" value="${8.5*pi/180}"/>
+    <!-- rad -->
     <xacro:property name="joint_effort_limit" value="10927.0"/>
-    <xacro:property name="joint_velocity_limit" value="1.0"/> <!-- rad/s -->
+    <xacro:property name="joint_velocity_limit" value="1.0"/>
+    <!-- rad/s -->
 
     <xacro:property name="hover_height" value="0.5"/>
 
@@ -66,9 +72,22 @@
         <visual>
             <origin xyz="-0.056692 -0.01955 -0.06803" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_HUB.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_HUB.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_HUB.STL" scale="0.00183889 0.0018152  0.00184029"/>
+            </geometry>
+            <origin xyz="-0.056692 -0.01955 -0.06803" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="50.35101166 21.72305865 48.56269594"/>
+            <mass value="0.025"/>
+            <inertia ixx="0.03280610139868335" ixy="0" ixz="0" iyy="0.05269840260223936" iyz="0" izz="0.025885101217440053" />
+        </inertial>
+
     </link>
 
     <!-- thumb brake -->
@@ -76,9 +95,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height/2 - 0.0025} ${-first_bar_length-second_bar_length}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Brake_assembly_v2.STL" scale="0.00065527 0.00065208 0.00065726"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 6.67991117e-05} ${-brake_height/2 - 0.0025+ 1.65038490e-02} ${-first_bar_length-second_bar_length + 1.08450333e-01}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.194638649184222 31.895760000277754 128.5184426568177"/>
+            <mass value="0.00481263743503889"/>
+            <inertia ixx="0.0011248938907101656" ixy="0" ixz="0" iyy="0.0009310554680371946" iyz="0" izz="0.0005919770004739692" />
+        </inertial>
+
     </link>
 
     <!-- thumb abduction -->
@@ -86,9 +118,23 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.006} ${-second_bar_length-first_bar_length-0.003}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Abduction_joint_v2.STL" scale="0.00037128 0.000375   0.00037564"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00322399} ${-brake_height+0.006 + 0.02010385} ${-second_bar_length-first_bar_length-0.003 + 0.10017548}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.201498102736423 24.557552553102166 112.63270583271043"/>
+            <mass value="0.0006223548296268202"/>
+            <inertia ixx="3.512006657187254e-05" ixy="0" ixz="0" iyy="4.413787180196791e-05" iyz="0" izz="1.7419595430057443e-05" />
+        </inertial>
+
+
     </link>
 
     <!-- thumb flexion one -->
@@ -96,9 +142,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.0055}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.00039714 0.00039916 0.00040166"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00415644} ${-brake_height+0.005 + 0.02027943} ${-second_bar_length-0.0055 + 0.08129007}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.68858341 27.84765126 96.01288421"/>
+            <mass value="0.025"/>
+            <inertia ixx="0.0018502375429449178" ixy="0" ixz="0" iyy="0.0018225711056992187" iyz="0" izz="0.0008327079492581882" />
+        </inertial>
+
     </link>
 
     <!-- thumb flexion two -->
@@ -106,9 +165,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.005355}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.00139    0.00127148 0.00150504"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 4.15643978e-03} ${-brake_height+0.005 + 2.05893936e-02} ${-second_bar_length-0.005355 + 3.12924385e-07}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="27.604207234737068 29.19945517603432 38.920776706857886"/>
+            <mass value="0.034526058931525355"/>
+            <inertia ixx="0.02800023691993136" ixy="0" ixz="0" iyy="0.02809107932381682" iyz="0" izz="0.0010209540235572411" />
+        </inertial>
+
     </link>
 
     <!-- thumb flexion three -->
@@ -116,9 +188,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.00533} -0.00533" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001      0.0011927  0.00118533"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2+ 0.00525644} ${-brake_height+0.00533 + 0.00561924} ${-0.00533+ 0.00015116}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="6.010029683795905 10.720012806750024 42.89809359346901"/>
+            <mass value="0.004500040758898379"/>
+            <inertia ixx="0.0024613506255391207" ixy="0" ixz="0" iyy="0.0022635971855287608" iyz="0" izz="0.0002727541193253326" />
+        </inertial>
+
     </link>
 
     <!-- thumb thimble -->
@@ -126,9 +211,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} -0.014951 ${-third_bar_length-0.0028}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Thimble_v2.STL" scale="0.00043096 0.00043331 0.00043302"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00115634} -0.014951 ${-third_bar_length-0.0028 + 0.04905724}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="10.270616342048228 11.241907236118854 66.52782703597637"/>
+            <mass value="0.0009622293913480453"/>
+            <inertia ixx="0.00010581465654481348" ixy="0" ixz="0" iyy="8.979368972307092e-05" iyz="0" izz="6.85624235606833e-05" />
+        </inertial>
+
     </link>
 
     <!-- index brake -->
@@ -136,9 +234,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height/2 - 0.0025} ${-first_bar_length-second_bar_length}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Brake_assembly_v2.STL" scale="0.00065527 0.00065208 0.00065726"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 6.67991117e-05} ${-brake_height/2 - 0.0025+ 1.65038490e-02} ${-first_bar_length-second_bar_length + 1.08450333e-01}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.194638649184222 31.895760000277754 128.5184426568177"/>
+            <mass value="0.00481263743503889"/>
+            <inertia ixx="0.0011248938907101656" ixy="0" ixz="0" iyy="0.0009310554680371946" iyz="0" izz="0.0005919770004739692" />
+        </inertial>
+
     </link>
 
     <!-- index abduction -->
@@ -146,9 +257,23 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.006} ${-second_bar_length-first_bar_length-0.003}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Abduction_joint_v2.STL" scale="0.00037128 0.000375   0.00037564"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00322399} ${-brake_height+0.006 + 0.02010385} ${-second_bar_length-first_bar_length-0.003 + 0.10017548}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.201498102736423 24.557552553102166 112.63270583271043"/>
+            <mass value="0.0006223548296268202"/>
+            <inertia ixx="3.512006657187254e-05" ixy="0" ixz="0" iyy="4.413787180196791e-05" iyz="0" izz="1.7419595430057443e-05" />
+        </inertial>
+
+
     </link>
 
     <!-- index flexion one -->
@@ -156,9 +281,24 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.0055}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.00039714 0.00039916 0.00040166"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00415644} ${-brake_height+0.005 + 0.02027943} ${-second_bar_length-0.0055 + 0.08129007}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.68858341 27.84765126 96.01288421"/>
+            <mass value="0.025"/>
+            <inertia ixx="0.0018502375429449178" ixy="0" ixz="0" iyy="0.0018225711056992187" iyz="0" izz="0.0008327079492581882" />
+        </inertial>
+
+
+
     </link>
 
     <!-- index flexion two -->
@@ -166,9 +306,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.005355}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.00139    0.00127148 0.00150504"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 4.15643978e-03} ${-brake_height+0.005 + 2.05893936e-02} ${-second_bar_length-0.005355 + 3.12924385e-07}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="27.604207234737068 29.19945517603432 38.920776706857886"/>
+            <mass value="0.034526058931525355"/>
+            <inertia ixx="0.02800023691993136" ixy="0" ixz="0" iyy="0.02809107932381682" iyz="0" izz="0.0010209540235572411" />
+        </inertial>
+
     </link>
 
     <!-- index flexion three -->
@@ -176,9 +329,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.00533} -0.00533" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001      0.0011927  0.00118533"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2+ 0.00525644} ${-brake_height+0.00533 + 0.00561924} ${-0.00533+ 0.00015116}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="6.010029683795905 10.720012806750024 42.89809359346901"/>
+            <mass value="0.004500040758898379"/>
+            <inertia ixx="0.0024613506255391207" ixy="0" ixz="0" iyy="0.0022635971855287608" iyz="0" izz="0.0002727541193253326" />
+        </inertial>
+
     </link>
 
     <!-- index thimble -->
@@ -186,9 +352,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} -0.014951 ${-third_bar_length-0.0028}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Thimble_v2.STL" scale="0.00043096 0.00043331 0.00043302"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00115634} -0.014951 ${-third_bar_length-0.0028 + 0.04905724}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="10.270616342048228 11.241907236118854 66.52782703597637"/>
+            <mass value="0.0009622293913480453"/>
+            <inertia ixx="0.00010581465654481348" ixy="0" ixz="0" iyy="8.979368972307092e-05" iyz="0" izz="6.85624235606833e-05" />
+        </inertial>
+
     </link>
 
     <!-- middle brake -->
@@ -196,9 +375,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height/2 - 0.0025} ${-first_bar_length-second_bar_length}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Brake_assembly_v2.STL" scale="0.00065527 0.00065208 0.00065726"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 6.67991117e-05} ${-brake_height/2 - 0.0025+ 1.65038490e-02} ${-first_bar_length-second_bar_length + 1.08450333e-01}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.194638649184222 31.895760000277754 128.5184426568177"/>
+            <mass value="0.00481263743503889"/>
+            <inertia ixx="0.0011248938907101656" ixy="0" ixz="0" iyy="0.0009310554680371946" iyz="0" izz="0.0005919770004739692" />
+        </inertial>
+
     </link>
 
     <!-- middle abduction -->
@@ -206,9 +398,23 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.006} ${-second_bar_length-first_bar_length-0.003}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Abduction_joint_v2.STL" scale="0.00037128 0.000375   0.00037564"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00322399} ${-brake_height+0.006 + 0.02010385} ${-second_bar_length-first_bar_length-0.003 + 0.10017548}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.201498102736423 24.557552553102166 112.63270583271043"/>
+            <mass value="0.0006223548296268202"/>
+            <inertia ixx="3.512006657187254e-05" ixy="0" ixz="0" iyy="4.413787180196791e-05" iyz="0" izz="1.7419595430057443e-05" />
+        </inertial>
+
+
     </link>
 
     <!-- middle flexion one -->
@@ -216,9 +422,23 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.0055}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.00039714 0.00039916 0.00040166"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00415644} ${-brake_height+0.005 + 0.02027943} ${-second_bar_length-0.0055 + 0.08129007}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.68858341 27.84765126 96.01288421"/>
+            <mass value="0.025"/>
+            <inertia ixx="0.0018502375429449178" ixy="0" ixz="0" iyy="0.0018225711056992187" iyz="0" izz="0.0008327079492581882" />
+        </inertial>
+
+
     </link>
 
     <!-- middle flexion two -->
@@ -226,9 +446,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.005355}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.00139    0.00127148 0.00150504"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 4.15643978e-03} ${-brake_height+0.005 + 2.05893936e-02} ${-second_bar_length-0.005355 + 3.12924385e-07}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="27.604207234737068 29.19945517603432 38.920776706857886"/>
+            <mass value="0.034526058931525355"/>
+            <inertia ixx="0.02800023691993136" ixy="0" ixz="0" iyy="0.02809107932381682" iyz="0" izz="0.0010209540235572411" />
+        </inertial>
+
     </link>
 
     <!-- middle flexion three -->
@@ -236,9 +469,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.00533} -0.00533" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001      0.0011927  0.00118533"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2+ 0.00525644} ${-brake_height+0.00533 + 0.00561924} ${-0.00533+ 0.00015116}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="6.010029683795905 10.720012806750024 42.89809359346901"/>
+            <mass value="0.004500040758898379"/>
+            <inertia ixx="0.0024613506255391207" ixy="0" ixz="0" iyy="0.0022635971855287608" iyz="0" izz="0.0002727541193253326" />
+        </inertial>
+
     </link>
 
     <!-- middle thimble -->
@@ -246,9 +492,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} -0.014951 ${-third_bar_length-0.0028}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Thimble_v2.STL" scale="0.00043096 0.00043331 0.00043302"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00115634} -0.014951 ${-third_bar_length-0.0028 + 0.04905724}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="10.270616342048228 11.241907236118854 66.52782703597637"/>
+            <mass value="0.0009622293913480453"/>
+            <inertia ixx="0.00010581465654481348" ixy="0" ixz="0" iyy="8.979368972307092e-05" iyz="0" izz="6.85624235606833e-05" />
+        </inertial>
+
     </link>
 
     <!-- ring brake -->
@@ -256,9 +515,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height/2 - 0.0025} ${-first_bar_length-second_bar_length}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Brake_assembly_v2.STL" scale="0.00065527 0.00065208 0.00065726"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 6.67991117e-05} ${-brake_height/2 - 0.0025+ 1.65038490e-02} ${-first_bar_length-second_bar_length + 1.08450333e-01}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.194638649184222 31.895760000277754 128.5184426568177"/>
+            <mass value="0.00481263743503889"/>
+            <inertia ixx="0.0011248938907101656" ixy="0" ixz="0" iyy="0.0009310554680371946" iyz="0" izz="0.0005919770004739692" />
+        </inertial>
+
     </link>
 
     <!-- ring abduction -->
@@ -266,9 +538,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.006} ${-second_bar_length-first_bar_length-0.003}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Abduction_joint_v2.STL" scale="0.00037128 0.000375   0.00037564"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00322399} ${-brake_height+0.006 + 0.02010385} ${-second_bar_length-first_bar_length-0.003 + 0.10017548}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.201498102736423 24.557552553102166 112.63270583271043"/>
+            <mass value="0.0006223548296268202"/>
+            <inertia ixx="3.512006657187254e-05" ixy="0" ixz="0" iyy="4.413787180196791e-05" iyz="0" izz="1.7419595430057443e-05" />
+        </inertial>
+
     </link>
 
     <!-- ring flexion one -->
@@ -276,9 +561,23 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.0055}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.00039714 0.00039916 0.00040166"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00415644} ${-brake_height+0.005 + 0.02027943} ${-second_bar_length-0.0055 + 0.08129007}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.68858341 27.84765126 96.01288421"/>
+            <mass value="0.025"/>
+            <inertia ixx="0.0018502375429449178" ixy="0" ixz="0" iyy="0.0018225711056992187" iyz="0" izz="0.0008327079492581882" />
+        </inertial>
+
+
     </link>
 
     <!-- ring flexion two -->
@@ -286,9 +585,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.005355}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.00139    0.00127148 0.00150504"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 4.15643978e-03} ${-brake_height+0.005 + 2.05893936e-02} ${-second_bar_length-0.005355 + 3.12924385e-07}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="27.604207234737068 29.19945517603432 38.920776706857886"/>
+            <mass value="0.034526058931525355"/>
+            <inertia ixx="0.02800023691993136" ixy="0" ixz="0" iyy="0.02809107932381682" iyz="0" izz="0.0010209540235572411" />
+        </inertial>
+
     </link>
 
     <!-- ring flexion three -->
@@ -296,9 +608,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.00533} -0.00533" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001      0.0011927  0.00118533"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2+ 0.00525644} ${-brake_height+0.00533 + 0.00561924} ${-0.00533+ 0.00015116}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="6.010029683795905 10.720012806750024 42.89809359346901"/>
+            <mass value="0.004500040758898379"/>
+            <inertia ixx="0.0024613506255391207" ixy="0" ixz="0" iyy="0.0022635971855287608" iyz="0" izz="0.0002727541193253326" />
+        </inertial>
+
     </link>
 
     <!-- ring thimble -->
@@ -306,9 +631,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} -0.014951 ${-third_bar_length-0.0028}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Thimble_v2.STL" scale="0.00043096 0.00043331 0.00043302"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00115634} -0.014951 ${-third_bar_length-0.0028 + 0.04905724}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="10.270616342048228 11.241907236118854 66.52782703597637"/>
+            <mass value="0.0009622293913480453"/>
+            <inertia ixx="0.00010581465654481348" ixy="0" ixz="0" iyy="8.979368972307092e-05" iyz="0" izz="6.85624235606833e-05" />
+        </inertial>
+
     </link>
 
     <!-- pinky brake -->
@@ -316,9 +654,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2-0.0004} ${-brake_height/2 - 0.0025} ${-first_bar_length-second_bar_length-0.003}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Brake_assembly_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Brake_assembly_v2.STL" scale="0.00065527 0.00065208 0.00065726"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 6.67991117e-05} ${-brake_height/2 - 0.0025+ 1.65038490e-02} ${-first_bar_length-second_bar_length + 1.08450333e-01}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.194638649184222 31.895760000277754 128.5184426568177"/>
+            <mass value="0.00481263743503889"/>
+            <inertia ixx="0.0011248938907101656" ixy="0" ixz="0" iyy="0.0009310554680371946" iyz="0" izz="0.0005919770004739692" />
+        </inertial>
+
     </link>
 
     <!-- pinky abduction -->
@@ -326,9 +677,23 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.006} ${-second_bar_length-first_bar_length-0.003}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Abduction_joint_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Abduction_joint_v2.STL" scale="0.00037128 0.000375   0.00037564"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00322399} ${-brake_height+0.006 + 0.02010385} ${-second_bar_length-first_bar_length-0.003 + 0.10017548}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.201498102736423 24.557552553102166 112.63270583271043"/>
+            <mass value="0.0006223548296268202"/>
+            <inertia ixx="3.512006657187254e-05" ixy="0" ixz="0" iyy="4.413787180196791e-05" iyz="0" izz="1.7419595430057443e-05" />
+        </inertial>
+
+
     </link>
 
     <!-- pinky flexion one -->
@@ -336,9 +701,23 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.0055}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_1_v2.STL" scale="0.00039714 0.00039916 0.00040166"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00415644} ${-brake_height+0.005 + 0.02027943} ${-second_bar_length-0.0055 + 0.08129007}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="11.68858341 27.84765126 96.01288421"/>
+            <mass value="0.025"/>
+            <inertia ixx="0.0018502375429449178" ixy="0" ixz="0" iyy="0.0018225711056992187" iyz="0" izz="0.0008327079492581882" />
+        </inertial>
+
+
     </link>
 
     <!-- pinky flexion two -->
@@ -346,9 +725,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.005} ${-second_bar_length-0.005355}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_2_v2.STL" scale="0.00139    0.00127148 0.00150504"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 4.15643978e-03} ${-brake_height+0.005 + 2.05893936e-02} ${-second_bar_length-0.005355 + 3.12924385e-07}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="27.604207234737068 29.19945517603432 38.920776706857886"/>
+            <mass value="0.034526058931525355"/>
+            <inertia ixx="0.02800023691993136" ixy="0" ixz="0" iyy="0.02809107932381682" iyz="0" izz="0.0010209540235572411" />
+        </inertial>
+
     </link>
 
     <!-- pinky flexion three -->
@@ -356,9 +748,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} ${-brake_height+0.00533} -0.00533" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Flexion_joint_3_v2.STL" scale="0.001      0.0011927  0.00118533"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2+ 0.00525644} ${-brake_height+0.00533 + 0.00561924} ${-0.00533+ 0.00015116}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="6.010029683795905 10.720012806750024 42.89809359346901"/>
+            <mass value="0.004500040758898379"/>
+            <inertia ixx="0.0024613506255391207" ixy="0" ixz="0" iyy="0.0022635971855287608" iyz="0" izz="0.0002727541193253326" />
+        </inertial>
+
     </link>
 
     <!-- pinky thimble -->
@@ -366,9 +771,22 @@
         <visual>
             <origin xyz="${-brake_thickness/2} -0.014951 ${-third_bar_length-0.0028}" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://senseglove_description/urdf/STL/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://senseglove_description/meshes/visual/MK29_DK1_Thimble_v2.STL" scale="0.001 0.001 0.001"/>
             </geometry>
         </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://senseglove_description/meshes/collision/MK29_DK1_Thimble_v2.STL" scale="0.00043096 0.00043331 0.00043302"/>
+            </geometry>
+            <origin xyz="${-brake_thickness/2 + 0.00115634} -0.014951 ${-third_bar_length-0.0028 + 0.04905724}" rpy="0 0 0"/>
+        </collision>
+      
+        <inertial>
+            <origin rpy="0 0 0" xyz="10.270616342048228 11.241907236118854 66.52782703597637"/>
+            <mass value="0.0009622293913480453"/>
+            <inertia ixx="0.00010581465654481348" ixy="0" ixz="0" iyy="8.979368972307092e-05" iyz="0" izz="6.85624235606833e-05" />
+        </inertial>
+
     </link>
 
     <!-- Joints -->
@@ -390,17 +808,13 @@
         <origin xyz="0 0.0074 ${-0.0}" rpy="0 0 0"/>
         <axis xyz="0 1 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${0}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="thumb_abduction" type="fixed">
         <parent link="thumb_abduction"/>
         <child link="thumb_flexion_one"/>
         <origin xyz="0 0 ${-0.00911-0.01414}" rpy="0 0 0"/>
-
     </joint>
 
     <joint name="thumb_cmc" type="revolute">
@@ -409,10 +823,7 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${0}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="thumb_mcp" type="revolute">
@@ -421,10 +832,7 @@
         <origin xyz="0 0 ${-second_bar_length}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${0}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${0}" upper="${PI/2}"/>
     </joint>
 
     <joint name="thumb_pip" type="revolute">
@@ -433,10 +841,7 @@
         <origin xyz="0 -0.012342 ${third_bar_length-0.0025}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${0}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-4.2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="hub_to_index_brake" type="fixed">
@@ -451,16 +856,14 @@
         <origin xyz="0 0.0074 ${-0.0}" rpy="0 0 0"/>
         <axis xyz="0 1 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="index_abduction" type="fixed">
         <parent link="index_abduction"/>
         <child link="index_flexion_one"/>
         <origin xyz="0 0 ${-0.00911-0.01414}" rpy="0 0 0"/>
+
     </joint>
 
     <joint name="index_mcp" type="revolute">
@@ -469,10 +872,7 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="index_pip" type="revolute">
@@ -481,10 +881,7 @@
         <origin xyz="0 0 ${-second_bar_length}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${0}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${0}" upper="${PI/2}"/>
     </joint>
 
     <joint name="index_dip" type="revolute">
@@ -493,10 +890,7 @@
         <origin xyz="0 -0.012342 ${third_bar_length-0.0025}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-4.2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-4.2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="hub_to_middle_brake" type="fixed">
@@ -511,10 +905,7 @@
         <origin xyz="0 0.0074 ${-0.0}" rpy="0 0 0"/>
         <axis xyz="0 1 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="middle_abduction" type="fixed">
@@ -529,10 +920,7 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="middle_pip" type="revolute">
@@ -541,10 +929,7 @@
         <origin xyz="0 0 ${-second_bar_length}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${0}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${0}" upper="${PI/2}"/>
     </joint>
 
     <joint name="middle_dip" type="revolute">
@@ -553,10 +938,7 @@
         <origin xyz="0 -0.012342 ${third_bar_length-0.0025}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-4.2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-4.2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="hub_to_ring_brake" type="fixed">
@@ -571,16 +953,14 @@
         <origin xyz="0 0.0074 ${-0.0}" rpy="0 0 0"/>
         <axis xyz="0 1 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="ring_abduction" type="fixed">
         <parent link="ring_abduction"/>
         <child link="ring_flexion_one"/>
         <origin xyz="0 0 ${-0.00911-0.01414}" rpy="0 0 0"/>
+
     </joint>
 
     <joint name="ring_mcp" type="revolute">
@@ -589,10 +969,7 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="ring_pip" type="revolute">
@@ -601,10 +978,7 @@
         <origin xyz="0 0 ${-second_bar_length}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${0}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${0}" upper="${PI/2}"/>
     </joint>
 
     <joint name="ring_dip" type="revolute">
@@ -613,10 +987,7 @@
         <origin xyz="0 -0.012342 ${third_bar_length-0.0025}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-4.2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-4.2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="hub_to_pinky_brake" type="fixed">
@@ -631,10 +1002,7 @@
         <origin xyz="0 0.0074 ${-0.0}" rpy="0 0 0"/>
         <axis xyz="0 1 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="pinky_abduction" type="fixed">
@@ -649,10 +1017,7 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-PI/2}" upper="${PI/2}"/>
     </joint>
 
     <joint name="pinky_pip" type="revolute">
@@ -661,10 +1026,7 @@
         <origin xyz="0 0 ${-second_bar_length}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${0}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${0}" upper="${PI/2}"/>
     </joint>
 
     <joint name="pinky_dip" type="revolute">
@@ -673,9 +1035,6 @@
         <origin xyz="0 -0.012342 ${third_bar_length-0.0025}" rpy="0 0 0"/>
         <axis xyz="-1 0 0"/>
 
-        <limit velocity="${1000}"
-               effort="${100}"
-               lower="${-4.2}"
-               upper="${100}"/>
+        <limit velocity="${1000}" effort="${100}" lower="${-4.2}" upper="${PI/2}"/>
     </joint>
 </robot>
