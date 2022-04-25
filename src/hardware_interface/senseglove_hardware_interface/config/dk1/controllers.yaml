@@ -8,6 +8,9 @@
       publish_rate: 50
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController  # Position interface because we are directly passing on commands
+    joint_position_controller:
+      type: position_controllers/JointGroupPositionController
+  # Position interface because we are directly passing on commands
 
 senseglove/rh/joint_trajectory_controller:
   ros__parameters:
@@ -52,3 +55,17 @@ senseglove/lh/joint_trajectory_controller:
     state_publish_rate: 50.0
     action_monitor_rate: 20.0
     allow_partial_joints_goal: true
+
+senseglove/lh/joint_position_controller:
+  ros__parameters:
+    joints:
+      - thumb_brake # FFB
+      - index_brake # FFB
+      - middle_brake # FFB
+      - ring_brake # FFB
+      - pinky_brake # FFB
+      - thumb_cmc # Buzzer
+      - index_mcp # Buzzer
+      - middle_mcp # Buzzer
+      - ring_mcp # Buzzer
+      - pinky_mcp # Buzzer
