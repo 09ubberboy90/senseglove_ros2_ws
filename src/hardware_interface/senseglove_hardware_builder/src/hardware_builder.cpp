@@ -1,4 +1,6 @@
 // Copyright 2020 Senseglove
+// Copyright 2022 Florent AUDONNET
+
 #include "senseglove_hardware_builder/hardware_builder.h"
 
 #include <algorithm>

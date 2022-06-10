@@ -1,3 +1,5 @@
+# Copyright 2022 Florent AUDONNET
+
 import os
 import sys
 

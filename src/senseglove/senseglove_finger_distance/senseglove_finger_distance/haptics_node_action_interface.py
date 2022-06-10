@@ -1,3 +1,5 @@
+# Copyright 2022 Florent AUDONNET
+
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
@@ -82,8 +84,7 @@ def main(args=None):
 
     joint_list = ["thumb_brake", " index_brake", "middle_brake", "ring_brake", "pinky_brake", "thumb_cmc", "index_mcp",
                   "middle_mcp", "ring_mcp", " pinky_mcp"]
-    # ns = '/senseglove/lh'
-    ns = ''
+    ns = '/senseglove/lh'
     action_ns = ns + '/joint_trajectory_controller/'
 
     traj = Trajectory(ns=action_ns, joint_names=joint_list,

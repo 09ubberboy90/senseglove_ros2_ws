@@ -1,3 +1,5 @@
+# Copyright 2022 Florent AUDONNET
+
 import rclpy
 from rclpy.node import Node
 from senseglove_shared_resources.msg import SenseGloveState, FingerDistanceFloats

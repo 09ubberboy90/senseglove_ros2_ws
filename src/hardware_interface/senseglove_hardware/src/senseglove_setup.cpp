@@ -1,4 +1,6 @@
 // Copyright 2020 SenseGlove
+// Copyright 2022 Florent AUDONNET
+
 #include "senseglove_hardware/senseglove_setup.h"
 #include "senseglove_hardware/joint.h"
 #include "senseglove_hardware/senseglove_robot.h"
