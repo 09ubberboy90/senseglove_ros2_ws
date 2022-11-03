@@ -69,3 +69,17 @@ senseglove/lh/joint_position_controller:
       - middle_mcp # Buzzer
       - ring_mcp # Buzzer
       - pinky_mcp # Buzzer
+
+senseglove/rh/joint_position_controller:
+  ros__parameters:
+    joints:
+      - thumb_brake # FFB
+      - index_brake # FFB
+      - middle_brake # FFB
+      - ring_brake # FFB
+      - pinky_brake # FFB
+      - thumb_cmc # Buzzer
+      - index_mcp # Buzzer
+      - middle_mcp # Buzzer
+      - ring_mcp # Buzzer
+      - pinky_mcp # Buzzer

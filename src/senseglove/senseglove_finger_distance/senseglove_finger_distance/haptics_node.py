@@ -18,7 +18,7 @@ class SenseGloveHaptics(Node):
     def timer_callback(self):
         msg = Float64MultiArray()
         # This will set the first 5 joints aka the brakes to their most restrictive value and will activate the last 5 joints to vibrate at their biggest intensity.
-        msg.data = [100,100,100,100,100,100,100,100,100,100]
+        msg.data = [100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0]
         self.publisher_.publish(msg)
 
 
