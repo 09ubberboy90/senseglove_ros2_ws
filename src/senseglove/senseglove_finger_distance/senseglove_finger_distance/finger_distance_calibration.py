@@ -1,15 +1,19 @@
 # Copyright 2022 Florent AUDONNET
 
 from __future__ import print_function
-from collections import deque
-import rclpy 
-from rclpy.node import Node
+
 import sys
-from os.path import isdir, exists
+from collections import deque
+from os.path import exists, isdir
+from time import time
+
+import rclpy
+from ament_index_python.packages import get_package_share_directory
+from rclpy.node import Node
 from senseglove_shared_resources.msg import FingerDistanceFloats
 from senseglove_shared_resources.srv import PinchCalibration
-from ament_index_python.packages import get_package_share_directory
-from time import time
+
+
 class Calibration(Node):
     """
     Class used by a finger distance controller to calibrate the distances between the fingertips of the user.

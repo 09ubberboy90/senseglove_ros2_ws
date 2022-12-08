@@ -6,7 +6,8 @@ import sys
 import launch
 import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
-from launch.substitutions import LaunchConfiguration, PythonExpression, PathJoinSubstitution, Command, FindExecutable
+from launch.substitutions import (Command, FindExecutable, LaunchConfiguration,
+                                  PathJoinSubstitution, PythonExpression)
 from launch_ros.substitutions import FindPackageShare
 
 

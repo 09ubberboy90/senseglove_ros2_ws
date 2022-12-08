@@ -1,21 +1,19 @@
 # Copyright 2022 Florent AUDONNET
 
-import rclpy
-from rclpy.node import Node
-from rclpy.action import ActionClient
-
 import sys
-from std_msgs.msg import Header
-import numpy as np
-
 from copy import copy
+from threading import Event, Thread
 from time import time
 
+import numpy as np
+import rclpy
 from control_msgs.action import FollowJointTrajectory
-from trajectory_msgs.msg import JointTrajectoryPoint
-from threading import Event, Thread
-
+from rclpy.action import ActionClient
 from rclpy.duration import Duration
+from rclpy.node import Node
+from std_msgs.msg import Header
+from trajectory_msgs.msg import JointTrajectoryPoint
+
 
 class Trajectory(Node):
     def __init__(self, ns='', joint_names=['empty'], goal_time_tol=0.01, timeout=0.001):

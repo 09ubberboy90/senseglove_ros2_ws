@@ -1,11 +1,13 @@
 # Copyright 2022 Florent AUDONNET
 
+from math import pow, sqrt
+
 import rclpy
-from rclpy.node import Node
-from senseglove_shared_resources.msg import SenseGloveState, FingerDistanceFloats
-from senseglove_shared_resources.srv import PinchCalibration
 from finger_distance_calibration import Calibration
-from math import sqrt, pow
+from rclpy.node import Node
+from senseglove_shared_resources.msg import (FingerDistanceFloats,
+                                             SenseGloveState)
+from senseglove_shared_resources.srv import PinchCalibration
 
 
 class FingerTipHandler(Node):
