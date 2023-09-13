@@ -19,6 +19,7 @@ vast amount of documentation, though it can be tedious to sort through its infor
 5. Install the following dependencies:
     1. `sudo apt-get install ros-galactic-ros2-control`
     2. `sudo apt-get install ros-galactic-ros2-controller`
+    3. Follow the build instruction of [yaml-cpp](https://github.com/jbeder/yaml-cpp)
 6. Run: `rosdep update`
 7. navigate, in the terminal, to the workspace folder
     1.  source ros2 workspace: `source /opt/ros/galactic/setup.bash`
